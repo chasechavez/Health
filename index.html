@@ -851,16 +851,25 @@
                     const syncTimeoutRef = useRef(null);
                     const isInitialLoad = useRef(true);
                     const lastRemoteUpdate = useRef(0);
+                    const isSaving = useRef(false);
+                    const localDataVersion = useRef(0);
 
-                    const saveToFirebase = useCallback((newData) => {
+                    const saveToFirebase = useCallback((newData, version) => {
                         if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
                         setSyncStatus('syncing');
                         syncTimeoutRef.current = setTimeout(() => {
+                            if (version !== undefined && version !== localDataVersion.current) return;
+                            isSaving.current = true;
                             const dataToSave = { ...newData, lastUpdated: Date.now() };
                             dataRef.set(dataToSave)
-                                .then(() => { lastRemoteUpdate.current = dataToSave.lastUpdated; setSyncStatus('synced'); setLastSync(Date.now()); })
-                                .catch(() => setSyncStatus('error'));
-                        }, 500);
+                                .then(() => {
+                                    lastRemoteUpdate.current = dataToSave.lastUpdated;
+                                    setSyncStatus('synced');
+                                    setLastSync(Date.now());
+                                    setTimeout(() => { isSaving.current = false; }, 2000);
+                                })
+                                .catch(() => { isSaving.current = false; setSyncStatus('error'); });
+                        }, 800);
                     }, []);
 
                     useEffect(() => {
@@ -872,15 +881,18 @@
                         const unsubscribe = dataRef.on('value', (snapshot) => {
                             const remoteData = snapshot.val();
                             if (remoteData) {
-                                // Only apply remote data if it's newer than what we last pushed
-                                // (prevents our own save echoing back and overwriting mid-edit)
+                                // Block echo-back: ignore updates that arrive while we're saving
+                                // or that aren't newer than what we last wrote
+                                if (isSaving.current) return;
                                 if (remoteData.lastUpdated > lastRemoteUpdate.current) {
                                     const migratedData = migrateData(remoteData);
                                     lastRemoteUpdate.current = remoteData.lastUpdated;
+                                    isInitialLoad.current = true; // pause auto-save during remote apply
                                     setData(migratedData);
                                     setCurrentWeek(migratedData.currentWeekIndex || 0);
                                     localStorage.setItem('chaseTraining56Week2026', JSON.stringify(migratedData));
                                     setLastSync(remoteData.lastUpdated);
+                                    setTimeout(() => { isInitialLoad.current = false; }, 100);
                                 }
                             }
                             setSyncStatus('synced');
@@ -900,9 +912,11 @@
 
                     useEffect(() => {
                         if (isInitialLoad.current) return; // don't auto-save during initial load
+                        localDataVersion.current += 1;
+                        const version = localDataVersion.current;
                         const newData = {...data, currentWeekIndex: currentWeek};
                         localStorage.setItem('chaseTraining56Week2026', JSON.stringify(newData));
-                        saveToFirebase(newData); // auto-sync every change to Firebase (debounced 800ms)
+                        saveToFirebase(newData, version); // auto-sync every change to Firebase (debounced 800ms)
                     }, [data, currentWeek]);
 
                     useEffect(() => {
