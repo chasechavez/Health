@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Chase 2026 Training</title>
+    <meta name="theme-color" content="#6d28d9">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Training 2026">
+    <meta name="description" content="Chase 2026 — 56-Week Athletic Training Program">
+    <link rel="manifest" href="manifest.json">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .exercise-row:hover { background: rgba(74, 144, 226, 0.1); }
+        .completed { background: rgba(34, 197, 94, 0.1); opacity: 0.7; }
+        .completed .exercise-name { text-decoration: line-through; }
+        @keyframes slideInDown {
+            from { transform: translateY(-100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-in { animation: slideInDown 0.3s ease-out; }
+        input[type="text"], input[type="number"], input[type="checkbox"] { transition: all 0.2s ease; }
+        input:focus { transform: scale(1.02); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+        .progress-bar { transition: width 0.5s ease; }
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(1000px) rotate(720deg); opacity: 0; }
+        }
+        .confetti { position: fixed; width: 10px; height: 10px; animation: confetti 3s ease-out forwards; }
+        .current-week-indicator { border: 3px solid #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
+        #loading { color: white; text-align: center; padding: 50px; font-size: 24px; }
+        .deload-week { background: rgba(251, 191, 36, 0.2); border: 2px solid #f59e0b; }
+        .test-week { background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; }
+        .recovery-week { background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; }
+        .general-prep-week { background: rgba(134, 239, 172, 0.3); border: 2px solid #4ade80; }
+        .sync-indicator {
+            position: fixed; top: 10px; right: 10px; z-index: 1000;
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;
+        }
+        .sync-online { background: rgba(34, 197, 94, 0.9); color: white; }
+        .sync-offline { background: rgba(239, 68, 68, 0.9); color: white; }
+        .sync-syncing { background: rgba(59, 130, 246, 0.9); color: white; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .syncing-pulse { animation: pulse 1s infinite; }
+        .race-week { background: rgba(251, 146, 60, 0.3); border: 2px solid #f97316; }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading 56-Week Training Plan...</div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        window.addEventListener('load', function() {
+            try {
+                document.getElementById('loading').style.display = 'none';
+                const { useState, useEffect, useRef, useCallback } = React;
+
+                // Firebase Configuration
+                const firebaseConfig = {
+                    apiKey: "AIzaSyAO2npuLviCt4uN8SWS9TPUT17rHaPWu18",
+                    authDomain: "chase-2026-training.firebaseapp.com",
+                    databaseURL: "https://chase-2026-training-default-rtdb.firebaseio.com",
+                    projectId: "chase-2026-training",
+                    storageBucket: "chase-2026-training.firebasestorage.app",
+                    messagingSenderId: "947893899748",
+                    appId: "1:947893899748:web:55dc3d1d61d13c737bf7f1"
+                };
+                if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+                const database = firebase.database();
+                const dataRef = database.ref('trainingData56Week');
+
+                const TOTAL_WEEKS = 56;
+
+                // ── Week date helpers — program starts Jan 1, 2026 ───────────────────────
+                const PROGRAM_START = new Date('2026-01-05'); // First Monday of 2026 — Jan 1 is a Thursday
+                const getWeekStartDate = (weekNum) => {
+                    const d = new Date(PROGRAM_START);
+                    d.setDate(d.getDate() + (weekNum - 1) * 7);
+                    return d;
+                };
+                const getWeekEndDate = (weekNum) => {
+                    const d = getWeekStartDate(weekNum);
+                    d.setDate(d.getDate() + 6);
+                    return d;
+                };
+                const fmtDate = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const fmtDateFull = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const getWeekLabel = (weekNum) => {
+                    const start = getWeekStartDate(weekNum);
+                    const end = getWeekEndDate(weekNum);
+                    return fmtDate(start) + ' – ' + fmtDate(end);
+                };
+                // Returns the day-of-week date for a given session (0=Mon,1=Tue,etc.)
+                const getSessionDate = (weekNum, dayOffset) => {
+                    const d = getWeekStartDate(weekNum);
+                    d.setDate(d.getDate() + dayOffset);
+                    return fmtDate(d);
+                };
+                const DAY_OFFSETS = { Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5 };
+
+                const volumeData = [
+                    2, 3, 4, 5,  // Weeks 1-4: Recovery
+                    6, 7, 8, 4,  // Weeks 5-8: Anatomical Adaptation
+                    7, 8, 9, 5,  // Weeks 9-12: Hypertrophy 1
+                    6, 7, 7, 4,  // Weeks 13-16: Strength 1
+                    5, 6, 6, 3,  // Weeks 17-20: Power 1
+                    8, 9, 9, 5,  // Weeks 21-24: Hypertrophy 2
+                    6, 7, 8, 4,  // Weeks 25-28: Strength 2
+                    5, 6, 6, 3,  // Weeks 29-32: Power 2
+                    6, 7, 7, 4,  // Weeks 33-36: Mile Specific
+                    7, 7, 8, 4,  // Weeks 37-40: Strength-Power Integration
+                    5, 5, 4, 3,  // Weeks 41-44: Peaking 1
+                    5, 5, 4, 3,  // Weeks 45-48: Speed/Power Peaking
+                    4, 4, 3, 2,  // Weeks 49-52: Mile Peaking
+                    3, 2, 2, 1   // Weeks 53-56: Testing
+                ];
+
+                const intensityData = [
+                    2, 3, 3, 4,  // Weeks 1-4: Recovery
+                    4, 4, 5, 4,  // Weeks 5-8: Anatomical Adaptation
+                    6, 6, 7, 5,  // Weeks 9-12: Hypertrophy 1
+                    7, 8, 8, 6,  // Weeks 13-16: Strength 1
+                    9, 9, 9, 7,  // Weeks 17-20: Power 1
+                    7, 7, 8, 6,  // Weeks 21-24: Hypertrophy 2
+                    8, 9, 9, 7,  // Weeks 25-28: Strength 2
+                    9, 9, 10, 7, // Weeks 29-32: Power 2
+                    7, 7, 8, 6,  // Weeks 33-36: Mile Specific
+                    9, 9, 9, 7,  // Weeks 37-40: Strength-Power Integration
+                    9, 10, 10, 8,// Weeks 41-44: Peaking 1
+                    9, 10, 10, 8,// Weeks 45-48: Speed/Power Peaking
+                    7, 7, 6, 5,  // Weeks 49-52: Mile Peaking
+                    10, 10, 10, 10// Weeks 53-56: Testing
+                ];
+
+                const ONE_RM = { 'Squat': 365, 'Bench Press': 255, 'Trap Bar Deadlift': 405, 'Power Clean': 225 };
+
+                const mesocycles = [
+                    { name: "Recovery & General Prep", weeks: 4, focus: "Post-race recovery and foundation", trainingEmphasis: "Active Recovery" },
+                    { name: "Anatomical Adaptation", weeks: 4, focus: "Build work capacity and movement patterns", trainingEmphasis: "GPP" },
+                    { name: "Hypertrophy Block 1", weeks: 4, focus: "Muscle cross-sectional area", trainingEmphasis: "Muscle Building" },
+                    { name: "Strength Block 1", weeks: 4, focus: "Maximal force production", trainingEmphasis: "Basic Strength" },
+                    { name: "Power Block 1", weeks: 4, focus: "Rate of force development", trainingEmphasis: "Speed-Strength" },
+                    { name: "Hypertrophy Block 2", weeks: 4, focus: "Advanced hypertrophy", trainingEmphasis: "Functional Hypertrophy" },
+                    { name: "Strength Block 2", weeks: 4, focus: "Competition-specific loads", trainingEmphasis: "Advanced Strength" },
+                    { name: "Power Block 2", weeks: 4, focus: "Peak power output", trainingEmphasis: "Competition Power" },
+                    { name: "Mile Specific Block", weeks: 4, focus: "Mile-specific speed development", trainingEmphasis: "Sub-5:15 Mile Prep" },
+                    { name: "Strength-Power Integration", weeks: 4, focus: "Integrate strength with power", trainingEmphasis: "Complex Training" },
+                    { name: "Peaking Phase 1", weeks: 4, focus: "Peak strength abilities", trainingEmphasis: "Strength Peak" },
+                    { name: "Speed/Power Peaking", weeks: 4, focus: "Peak VJ and 30yd dash", trainingEmphasis: "Explosive Peak" },
+                    { name: "Mile Peaking", weeks: 4, focus: "Final mile preparation", trainingEmphasis: "Mile Time Trial" },
+                    { name: "Testing & Realization", weeks: 4, focus: "Test all goals", trainingEmphasis: "Max Out" }
+                ];
+
+                // ── 5K RACE PREP OVERLAY (Weeks 7-16, Race: Apr 30) ──────────────────────
+                const fiveKOverlay = {
+                    7:  { tue: { name: "3x1 Mile @ 7:30/mi", mileage: 3.5, notes: "5K Prep W1 · 2min rest | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 25min Run", mileage: 2.5, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "4x200m @ 6K Effort", mileage: 1.5, notes: "5K speed feel · full recovery between" } },
+                    8:  { tue: { name: "2x1 Mile @ 7:20 + 4x200m", mileage: 3, notes: "5K Prep W2 (Deload) · 90s rest" },
+                          thu: { name: "Easy 20min Run", mileage: 2, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "6x100m Strides", mileage: 1, notes: "Relaxed, fast · full recovery between" } },
+                    9:  { tue: { name: "4x800m @ 6:35/mi", mileage: 3.5, notes: "5K Prep W3 · 90s rest | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "4x400m @ 6:30/mi", mileage: 2, notes: "5K speed work · 2min rest" } },
+                    10: { tue: { name: "20min Tempo @ 7:10/mi", mileage: 3, notes: "5K Prep W4 · comfortably hard | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "6x200m @ 6:20/mi", mileage: 2, notes: "5K speed · 90s rest" } },
+                    11: { tue: { name: "5x800m @ 6:30/mi", mileage: 4, notes: "5K Prep W5 · 90s rest | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 35min Run", mileage: 3.5, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "4x400m @ 6:25/mi", mileage: 2, notes: "5K speed work · 2min rest" } },
+                    12: { tue: { name: "3x800m @ 6:30/mi", mileage: 2.5, notes: "5K Prep W6 (Deload) · 2min rest | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 25min Run", mileage: 2.5, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "6x100m Strides", mileage: 1, notes: "Strides only · keep legs fresh" } },
+                    13: { tue: { name: "25min Tempo @ 7:05/mi", mileage: 3.5, notes: "5K Prep W7 · strong sustained effort | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "3x1 Mile @ 6:55/mi", mileage: 3.5, notes: "5K race pace work · 2min rest" } },
+                    14: { tue: { name: "6x800m @ 6:25/mi", mileage: 4.5, notes: "5K Prep W8 · 2min rest | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "4x400m @ 6:20/mi", mileage: 2, notes: "5K speed · 2min rest" } },
+                    15: { tue: { name: "2x2 Mile @ 6:55/mi", mileage: 4.5, notes: "5K Prep W9 · race simulation | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 25min Run", mileage: 2.5, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "4x200m @ Race Effort", mileage: 1.5, notes: "Race pace sharpening · full recovery" } },
+                    15: { tue: { name: "3x800m @ 6:40/mi", mileage: 2.5, notes: "5K Prep W10 (Taper) · stay fresh | Goal: Apr 30 Sub-21:00" },
+                          thu: { name: "Easy 20min Run", mileage: 2, notes: "True easy pace 8:30-9:00/mi only" },
+                          sat: { name: "4x200m @ 6:15/mi", mileage: 1.5, notes: "Sharpening strides · stay relaxed" } },
+                    // Week 16: Apr 20-26 — Final sharpening week before race
+                    16: { tue: { name: "2x1 Mile @ 6:45/mi (race pace)", mileage: 2.5, notes: "Final race pace work · feel the target · 3min rest" },
+                          thu: { name: "Easy 20min + 4x100m strides", mileage: 2, notes: "Last tune-up · legs should feel fresh and snappy" },
+                          sat: { name: "4x100m strides + rest", mileage: 1, notes: "Relaxed strides only · CNS stays fresh for Thursday race" } },
+                    // Week 17: Apr 27-May 3 — RACE WEEK (race is Thursday Apr 30)
+                    17: { tue: { name: "Easy 15min + 4x100m strides", mileage: 1.5, notes: "2 days before race · feel light and fast · no hard effort" },
+                          thu: { name: "🏁 5K RACE — Sub-21:00 Goal! (Apr 30)", mileage: 3.1, notes: "Mile 1: 7:00 | Mile 2: 6:55 | Mile 3: 6:40 | TARGET: 20:35-20:45 🏆" },
+                          sat: { name: "Easy recovery run 20min", mileage: 2, notes: "Post-race recovery · easy shuffle · celebrate the work" } },
+                };
+
+                function generateAllWeeks() {
+                    const weeks = [];
+                    let weekNum = 1;
+                    mesocycles.forEach((meso, mesoIndex) => {
+                        for (let weekInMeso = 0; weekInMeso < meso.weeks; weekInMeso++) {
+                            if (weekNum > TOTAL_WEEKS) break;
+                            const volume = volumeData[weekNum - 1];
+                            const intensity = intensityData[weekNum - 1];
+                            const isDeload = (weekInMeso === 3) && mesoIndex > 0;
+                            const isTestWeek = weekNum >= 53;
+                            const isRecovery = mesoIndex === 0 && weekInMeso < 2;
+                            const isGeneralPrep = mesoIndex === 0 && weekInMeso >= 2;
+                            const is5KRaceWeek = weekNum === 17;
+                            weeks.push({
+                                weekNum, mesocycle: mesoIndex + 1, phase: meso.name, focus: meso.focus,
+                                trainingEmphasis: meso.trainingEmphasis, volume, intensity, isDeload,
+                                isTestWeek, isRecovery, isGeneralPrep, is5KRaceWeek, weekInBlock: weekInMeso + 1,
+                                sessions: generateSessions(weekNum, mesoIndex, volume, isDeload, weekInMeso, isRecovery)
+                            });
+
+                            // Apply 5K overlay for race prep (weeks 7-16, Apr 30 Sub-21 goal)
+                            if (fiveKOverlay[weekNum]) {
+                                const ov = fiveKOverlay[weekNum];
+                                const lastWeek = weeks[weeks.length - 1];
+                                lastWeek.sessions[1] = {
+                                    name: "5K Prep Quality Run",
+                                    day: "Tuesday",
+                                    exercises: [{ name: ov.tue.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.tue.notes, mileage: ov.tue.mileage, isRun: true }],
+                                    notes: "🏃 5K Prep — Apr 30 Race Goal: Sub-21:00"
+                                };
+                                lastWeek.sessions[3] = {
+                                    name: "Easy Recovery Run",
+                                    day: "Thursday",
+                                    exercises: [{ name: ov.thu.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.thu.notes, mileage: ov.thu.mileage, isRun: true }],
+                                    notes: "Easy only — 8:30-9:00/mi, no pushing"
+                                };
+                                lastWeek.sessions[5] = {
+                                    name: weekNum === 16 ? "🏁 5K RACE DAY — Apr 30" : "5K Speed Work",
+                                    day: "Saturday",
+                                    exercises: [{ name: weekNum === 16 ? "🏁 5K RACE — Sub-21:00 Goal!" : ov.sat.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: weekNum === 16 ? "Mile 1: 7:00 | Mile 2: 6:55 | Mile 3: 6:40 | TARGET: 20:35-20:45" : ov.sat.notes, mileage: weekNum === 16 ? 3.1 : ov.sat.mileage, isRun: true }],
+                                    notes: weekNum === 16 ? "🏁 RACE DAY — Apr 30 5K — Sub-21:00!" : "🏃 5K Speed — Apr 30 Race Goal: Sub-21:00"
+                                };
+                            }
+
+                            weekNum++;
+                        }
+                    });
+                    return weeks;
+                }
+
+
+                // ── Plyometric & Sprint Periodization ────────────────────────────────────────
+                function getPlyoExercises(mesoIndex, isDeload) {
+                    if (mesoIndex === 0) return []; // Recovery — no plyos
+                    if (isDeload) {
+                        return [{name: "Broad Jump", sets: 2, reps: "4", weight: "", percent: "", completed: false, notes: "Sub-max effort · focus on landing", isPlyo: true}];
+                    }
+                    const phases = [
+                        [], // 0 Recovery (handled above)
+                        // 1 Anatomical Adaptation — intro plyos, bilateral, low intensity
+                        [{name: "Pogo Hops", sets: 2, reps: "15", weight: "", percent: "", completed: false, notes: "Stiff ankle · ground contact <150ms", isPlyo: true},
+                         {name: "Box Step-Up Jump", sets: 2, reps: "6/leg", weight: "", percent: "", completed: false, notes: "12in box · soft landing", isPlyo: true}],
+                        // 2 Hypertrophy 1 — accumulation plyos, building volume
+                        [{name: "Squat Jump", sets: 3, reps: "6", weight: "", percent: "", completed: false, notes: "Max height · hands on hips", isPlyo: true},
+                         {name: "Broad Jump", sets: 3, reps: "5", weight: "", percent: "", completed: false, notes: "Max distance · stick landing", isPlyo: true},
+                         {name: "Lateral Bound", sets: 2, reps: "5/side", weight: "", percent: "", completed: false, notes: "Explosive push · stick each rep", isPlyo: true}],
+                        // 3 Strength 1 — strength-speed plyos, depth drops
+                        [{name: "Depth Drop (24in)", sets: 3, reps: "5", weight: "", percent: "", completed: false, notes: "Absorb force · reinforce triple extension", isPlyo: true},
+                         {name: "Hurdle Hop (30in)", sets: 3, reps: "5", weight: "", percent: "", completed: false, notes: "Minimize ground contact · stiff ankle", isPlyo: true},
+                         {name: "Single-Leg Box Jump", sets: 3, reps: "4/leg", weight: "", percent: "", completed: false, notes: "18in box · VJ specific", isPlyo: true}],
+                        // 4 Power 1 — intensive plyos, reactive/shock method
+                        [{name: "Depth Jump (30in)", sets: 4, reps: "5", weight: "", percent: "", completed: false, notes: "REACTIVE — jump immediately on landing · max RFD", isPlyo: true},
+                         {name: "Single-Leg Bound x3", sets: 3, reps: "4/leg", weight: "", percent: "", completed: false, notes: "Triple bound — distance + height", isPlyo: true},
+                         {name: "Drop & Stick (36in)", sets: 3, reps: "4", weight: "", percent: "", completed: false, notes: "Eccentric loading prep", isPlyo: true}],
+                        // 5 Hypertrophy 2 — reload, reactive emphasis returns
+                        [{name: "Reactive Box Jump (24in)", sets: 3, reps: "5", weight: "", percent: "", completed: false, notes: "Step off → immediate jump · sub-0.2s contact", isPlyo: true},
+                         {name: "Lateral Bound to Box", sets: 3, reps: "4/side", weight: "", percent: "", completed: false, notes: "Lateral power → vertical conversion", isPlyo: true},
+                         {name: "Ankle Pop", sets: 2, reps: "15", weight: "", percent: "", completed: false, notes: "Reactive stiffness · fast ground contact", isPlyo: true}],
+                        // 6 Strength 2 — heavy loaded plyos + contrast
+                        [{name: "Depth Jump (36in)", sets: 4, reps: "5", weight: "", percent: "", completed: false, notes: "Highest box to date · max reactive effort", isPlyo: true},
+                         {name: "Weighted Jump Squat (20% BW)", sets: 3, reps: "4", weight: "35", percent: "", completed: false, notes: "Load = ~20% BW · bar on back", isPlyo: true},
+                         {name: "Single-Leg Depth Drop", sets: 3, reps: "4/leg", weight: "", percent: "", completed: false, notes: "Unilateral eccentric load", isPlyo: true}],
+                        // 7 Power 2 — peak reactive plyos, max effort
+                        [{name: "Depth Jump (36in) — MAX EFFORT", sets: 5, reps: "4", weight: "", percent: "", completed: false, notes: "Record every jump — identify best height", isPlyo: true},
+                         {name: "Triple Broad Jump", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "3 consecutive bounds · max distance", isPlyo: true},
+                         {name: "Reactive Single-Leg Hop (3x)", sets: 3, reps: "3/leg", weight: "", percent: "", completed: false, notes: "Continuous hops · fast reactive", isPlyo: true}],
+                        // 8 Mile Specific — maintain VJ, reduce volume
+                        [{name: "Squat Jump", sets: 2, reps: "5", weight: "", percent: "", completed: false, notes: "Maintenance — max effort, low volume", isPlyo: true},
+                         {name: "Depth Jump (30in)", sets: 2, reps: "4", weight: "", percent: "", completed: false, notes: "Maintain reactive capacity", isPlyo: true}],
+                        // 9 Strength-Power Integration — complex pairs
+                        [{name: "Complex: Heavy Squat → Depth Jump", sets: 4, reps: "3+4", weight: "", percent: "", completed: false, notes: "Post-activation potentiation: squat @ 85%+ then immediate depth jump", isPlyo: true},
+                         {name: "Kettlebell Swing → Broad Jump", sets: 3, reps: "5+3", weight: "70", percent: "", completed: false, notes: "Hip hinge power transfer · PAP complex", isPlyo: true}],
+                        // 10 Peaking 1 — peak VJ-specific
+                        [{name: "VJ Test Protocol (hands on hips)", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "TRACK HEIGHT — this is your benchmark set", isPlyo: true},
+                         {name: "Depth Jump (36in)", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "Peak reactive — full recovery between reps", isPlyo: true},
+                         {name: "Single-Leg Reactive Hop", sets: 2, reps: "3/leg", weight: "", percent: "", completed: false, notes: "Maintain unilateral power", isPlyo: true}],
+                        // 11 Speed/Power Peaking — near-competition VJ
+                        [{name: "VJ Warm-Up Sequence", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "Pogo → squat jump → max VJ · prime CNS", isPlyo: true},
+                         {name: "Depth Jump (30in)", sets: 2, reps: "3", weight: "", percent: "", completed: false, notes: "Fresh CNS only · don't grind", isPlyo: true}],
+                        // 12 Mile Peaking — minimal, stay fresh
+                        [{name: "Squat Jump", sets: 2, reps: "3", weight: "", percent: "", completed: false, notes: "CNS primer only · stop at any fatigue", isPlyo: true}],
+                        // 13 Testing — test day
+                        [{name: "🏆 VERTICAL JUMP TEST (hands on hips)", sets: 1, reps: "3 max efforts", weight: "", percent: "", completed: false, notes: "Goal: 18 inches · rest 3min between jumps", isPlyo: true}],
+                    ];
+                    return phases[mesoIndex] || [];
+                }
+
+                function getSprintExercises(mesoIndex, isDeload, weekInBlock) {
+                    if (mesoIndex === 0) return [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true}];
+                    if (isDeload) {
+                        return [
+                            {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                            {name: "A-Skip Drill", sets: 2, reps: "20yd", weight: "", percent: "", completed: false, notes: "Deload — mechanics only · no speed work", isSprint: true},
+                            {name: "Stride-Out", sets: 3, reps: "40yd", weight: "", percent: "", completed: false, notes: "75% effort · smooth acceleration", isSprint: true}
+                        ];
+                    }
+                    const phases = [
+                        [], // 0
+                        // 1 Anatomical Adaptation — mechanics & acceleration posture
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "Wall Drive Drill", sets: 3, reps: "10/leg", weight: "", percent: "", completed: false, notes: "45° lean · piston action · Dan Pfaff mechanics", isSprint: true},
+                         {name: "A-Skip", sets: 3, reps: "20yd", weight: "", percent: "", completed: false, notes: "High knee · dorsiflexion · front-side mechanics", isSprint: true},
+                         {name: "B-Skip", sets: 3, reps: "20yd", weight: "", percent: "", completed: false, notes: "Extend + claw back · pawing action", isSprint: true},
+                         {name: "Falling Start Sprint", sets: 4, reps: "15yd", weight: "", percent: "", completed: false, notes: "Fall forward from ankles → accelerate · 90s rest", isSprint: true}],
+                        // 2 Hypertrophy 1 — acceleration development
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "Wall Drive Drill", sets: 3, reps: "10/leg", weight: "", percent: "", completed: false, notes: "Sprint mechanic primer", isSprint: true},
+                         {name: "30yd Sprint (standing start)", sets: 4, reps: "30yd", weight: "", percent: "", completed: false, notes: "Full recovery 2-3min · TIME EACH REP", isSprint: true},
+                         {name: "20yd Build", sets: 3, reps: "20yd", weight: "", percent: "", completed: false, notes: "0-50-75-90% progressive acceleration", isSprint: true}],
+                        // 3 Strength 1 — acceleration + first step power
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "3-Point Stance Sprint", sets: 5, reps: "30yd", weight: "", percent: "", completed: false, notes: "Full recovery 3min · 30yd dash position · TIME EACH", isSprint: true},
+                         {name: "Resisted Sprint (sled ~10%BW)", sets: 4, reps: "15yd", weight: "20", percent: "", completed: false, notes: "Overload first-step power · Derek Hansen method", isSprint: true},
+                         {name: "Flying 10yd", sets: 3, reps: "10yd", weight: "", percent: "", completed: false, notes: "15yd roll-in → max velocity 10yd · top speed work", isSprint: true}],
+                        // 4 Power 1 — speed-strength, reactive starts
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "Jump → 30yd Sprint", sets: 5, reps: "30yd", weight: "", percent: "", completed: false, notes: "CMJ then immediate 30yd — reactive to sprint · PAP · TIME", isSprint: true},
+                         {name: "Resisted Sprint (sled)", sets: 3, reps: "20yd", weight: "25", percent: "", completed: false, notes: "Heavy resist → overspeed sequence", isSprint: true},
+                         {name: "Overspeed Assisted Sprint", sets: 3, reps: "20yd", weight: "", percent: "", completed: false, notes: "Slight downhill or band-assisted · 105% max speed", isSprint: true}],
+                        // 5 Hypertrophy 2 — reload, rebuild sprint volume
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "A-Skip + B-Skip", sets: 3, reps: "20yd each", weight: "", percent: "", completed: false, notes: "Refresh mechanics", isSprint: true},
+                         {name: "30yd Sprint (3-point)", sets: 4, reps: "30yd", weight: "", percent: "", completed: false, notes: "Mechanics review + TIME · full recovery", isSprint: true},
+                         {name: "20yd Build + Fly", sets: 3, reps: "40yd", weight: "", percent: "", completed: false, notes: "20yd build into 20yd fly", isSprint: true}],
+                        // 6 Strength 2 — strength-speed transfer
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "Complex: Heavy Trap Bar → 30yd Sprint", sets: 4, reps: "2+30yd", weight: "", percent: "", completed: false, notes: "Post-activation potentiation · 30s between lift and sprint · TIME sprint", isSprint: true},
+                         {name: "3-Point Stance Sprint", sets: 4, reps: "30yd", weight: "", percent: "", completed: false, notes: "Sub-max — 95% · TIME each · 3min recovery", isSprint: true}],
+                        // 7 Power 2 — peak sprint volume + sub-4.0 targeting
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "30yd Sprint — MAX EFFORT", sets: 6, reps: "30yd", weight: "", percent: "", completed: false, notes: "TIME EVERY REP · 3-point start · 4min full recovery · goal sub-4.0", isSprint: true},
+                         {name: "Resisted 30yd + Free 30yd", sets: 3, reps: "30yd x2", weight: "", percent: "", completed: false, notes: "Contrast set: resist → free sprint for overspeed effect", isSprint: true}],
+                        // 8 Mile Specific — maintain sprint, reduce volume
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "30yd Sprint (standing)", sets: 3, reps: "30yd", weight: "", percent: "", completed: false, notes: "Maintenance · 90% effort · TIME", isSprint: true}],
+                        // 9 Strength-Power Integration — complex sprint
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "Complex: Power Clean → 30yd Sprint", sets: 5, reps: "2+30yd", weight: "", percent: "", completed: false, notes: "Olympic lift → explosive sprint · PAP · TIME sprint", isSprint: true},
+                         {name: "Flying 20yd", sets: 4, reps: "20yd", weight: "", percent: "", completed: false, notes: "20yd build-in → 20yd timed · max velocity training", isSprint: true}],
+                        // 10 Peaking 1 — sub-4.0 focus begins
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "30yd Sprint — PEAK EFFORT", sets: 5, reps: "30yd", weight: "", percent: "", completed: false, notes: "TIME EVERY REP · 4min rest · goal: sub-4.2 this week", isSprint: true},
+                         {name: "A-Skip + Wall Drive Primer", sets: 2, reps: "20yd each", weight: "", percent: "", completed: false, notes: "Mechanic freshness before sprints", isSprint: true}],
+                        // 11 Speed/Power Peaking — competition-ready sprints
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "30yd Sprint — COMPETITION PREP", sets: 5, reps: "30yd", weight: "", percent: "", completed: false, notes: "TIME ALL · full 5min rest · target sub-4.0 · log each time", isSprint: true},
+                         {name: "3-Point Start Drill", sets: 3, reps: "10yd", weight: "", percent: "", completed: false, notes: "Perfect start mechanics · explosive first step", isSprint: true}],
+                        // 12 Mile Peaking — minimal sprints, stay sharp
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "30yd Sprint", sets: 3, reps: "30yd", weight: "", percent: "", completed: false, notes: "Sharpening only · 90% · rest 5min · TIME", isSprint: true}],
+                        // 13 Testing — test day
+                        [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                         {name: "🏆 30-YARD DASH TEST", sets: 3, reps: "30yd", weight: "", percent: "", completed: false, notes: "Goal: Sub-4.0 · 3-point start · 10min rest between · TIME ALL 3", isSprint: true}],
+                    ];
+                    return phases[mesoIndex] || [];
+                }
+
+                function generateSessions(weekNum, mesoIndex, volume, isDeload, weekInBlock, isRecovery) {
+                    const prog = 1 + (weekNum * 0.003);
+                    let mainReps, mainSets, auxReps, auxSets, squatPct, benchPct, trapPct, cleanPct;
+
+                    if (mesoIndex === 0) {
+                        mainReps = isRecovery ? "15-20" : "12-15"; mainSets = isRecovery ? 2 : 3;
+                        auxReps = "12"; auxSets = 2;
+                        squatPct = 0.45 + weekInBlock * 0.03; benchPct = squatPct; trapPct = squatPct; cleanPct = 0.50;
+                    } else if (mesoIndex === 1) {
+                        mainReps = isDeload ? "12" : "12-15"; mainSets = isDeload ? 2 : 3;
+                        auxReps = "12-15"; auxSets = 3;
+                        squatPct = isDeload ? 0.50 : 0.50 + weekInBlock * 0.03;
+                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.55;
+                    } else if (mesoIndex === 2 || mesoIndex === 5) {
+                        mainReps = isDeload ? "10" : "8-10"; mainSets = isDeload ? 3 : 4;
+                        auxReps = "10-12"; auxSets = 3;
+                        const base = mesoIndex === 5 ? 0.70 : 0.65;
+                        squatPct = isDeload ? base : base + weekInBlock * 0.025;
+                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.65;
+                    } else if (mesoIndex === 3 || mesoIndex === 6) {
+                        mainReps = isDeload ? "5" : weekInBlock <= 1 ? "6" : weekInBlock === 2 ? "5" : "3-4";
+                        mainSets = isDeload ? 3 : 5; auxReps = "6-8"; auxSets = 4;
+                        const base = mesoIndex === 6 ? 0.80 : 0.75;
+                        squatPct = isDeload ? base : base + weekInBlock * 0.03;
+                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.75;
+                    } else if (mesoIndex === 4 || mesoIndex === 7) {
+                        mainReps = isDeload ? "3" : "2-3"; mainSets = isDeload ? 3 : 5;
+                        auxReps = "5"; auxSets = 3;
+                        const base = mesoIndex === 7 ? 0.87 : 0.85;
+                        squatPct = isDeload ? base : base + weekInBlock * 0.015;
+                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.82;
+                    } else if (mesoIndex >= 10) {
+                        mainReps = isDeload ? "2" : "1-2"; mainSets = isDeload ? 2 : 3;
+                        auxReps = "3-5"; auxSets = 2;
+                        squatPct = weekNum >= 55 ? 1.0 : 0.92;
+                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.90;
+                    } else {
+                        mainReps = isDeload ? "3" : "2-3"; mainSets = isDeload ? 3 : 4;
+                        auxReps = "4-6"; auxSets = 3;
+                        squatPct = isDeload ? 0.80 : 0.85 + weekInBlock * 0.02;
+                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.80;
+                    }
+
+                    const squatWeight = Math.round((ONE_RM['Squat'] * squatPct * prog) / 5) * 5;
+                    const benchWeight = Math.round((ONE_RM['Bench Press'] * benchPct * prog) / 5) * 5;
+                    const trapWeight = Math.round((ONE_RM['Trap Bar Deadlift'] * trapPct * prog) / 5) * 5;
+                    const cleanWeight = Math.round((ONE_RM['Power Clean'] * cleanPct * prog) / 5) * 5;
+
+                    // ── Accessory weights — periodized to match main lift phase ─────────────
+                    // RFESS: 30-50% of squat 1RM (unilateral, dumbbell in each hand = total load)
+                    // Phase scales from accumulation (lighter/more reps) to intensification (heavier/fewer)
+                    const rfessPct = mesoIndex === 0 ? 0.28 :
+                                     mesoIndex === 1 ? 0.32 :
+                                     mesoIndex === 2 ? 0.38 : mesoIndex === 5 ? 0.42 :
+                                     mesoIndex === 3 ? 0.45 : mesoIndex === 6 ? 0.50 :
+                                     mesoIndex === 4 ? 0.48 : mesoIndex === 7 ? 0.52 :
+                                     mesoIndex >= 10 ? 0.40 : 0.46;
+                    const rfessWeight = Math.round((ONE_RM['Squat'] * rfessPct * prog) / 5) * 5;
+
+                    // Pallof Press: anti-rotation core — increases with phase, sets match auxSets
+                    const pallofWeight = mesoIndex === 0 ? 20 :
+                                         mesoIndex === 1 ? 25 :
+                                         mesoIndex === 2 ? 30 : mesoIndex === 5 ? 35 :
+                                         mesoIndex === 3 ? 40 : mesoIndex === 6 ? 45 :
+                                         mesoIndex === 4 ? 45 : mesoIndex === 7 ? 50 :
+                                         mesoIndex >= 10 ? 40 : 45;
+                    const pallofReps = mesoIndex <= 1 ? "12/side" :
+                                        mesoIndex <= 3 ? "10/side" :
+                                        mesoIndex <= 5 ? "8/side" : "6/side";
+                    const pallofSets = mesoIndex === 0 ? 2 : mesoIndex <= 2 ? 3 : mesoIndex <= 5 ? 3 : 2;
+
+                    // Pull-ups: BW in early phases, weighted in strength/power phases
+                    // Weight = added load (lbs). Uses auxSets/auxReps that already match phase.
+                    const pullupAdded = mesoIndex <= 1 ? 0 :
+                                        mesoIndex === 2 ? 10 : mesoIndex === 5 ? 15 :
+                                        mesoIndex === 3 ? 25 : mesoIndex === 6 ? 35 :
+                                        mesoIndex === 4 ? 35 : mesoIndex === 7 ? 45 :
+                                        mesoIndex >= 10 ? 30 : 25;
+                    const pullupWeight = pullupAdded === 0 ? "BW" : String(pullupAdded) + " added";
+                    const pullupNotes = pullupAdded === 0 ? "Vertical pull — full ROM, controlled eccentric" :
+                                        mesoIndex <= 4 ? "Weighted — add load via belt or vest · control descent" :
+                                        "Heavy weighted — strength-to-bodyweight ratio goal";
+
+                    // DB Bench: ~40-55% of bench 1RM per dumbbell, scales with phase
+                    const dbBenchPct = mesoIndex === 0 ? 0.38 :
+                                        mesoIndex === 1 ? 0.43 :
+                                        mesoIndex === 2 ? 0.48 : mesoIndex === 5 ? 0.52 :
+                                        mesoIndex === 3 ? 0.54 : mesoIndex === 6 ? 0.58 :
+                                        mesoIndex === 4 ? 0.56 : mesoIndex === 7 ? 0.60 :
+                                        mesoIndex >= 10 ? 0.50 : 0.55;
+                    const dbBenchWeight = Math.round((ONE_RM['Bench Press'] * dbBenchPct * prog) / 2) * 2; // nearest 2lb (DB)
+                    const dbBenchNotes = mesoIndex <= 1 ? "Stability focus — slow eccentric 3 sec" :
+                                          mesoIndex <= 3 ? "Controlled tempo — 2 sec eccentric" :
+                                          mesoIndex <= 5 ? "Moderate tempo — build to top set" :
+                                          "Explosive concentric — match main lift intent";
+
+                    // Barbell Rows: ~55-75% of bench 1RM, scales with phase
+                    // Rows are horizontal pull antagonist to bench — should progress in lockstep
+                    const rowPct = mesoIndex === 0 ? 0.45 :
+                                    mesoIndex === 1 ? 0.52 :
+                                    mesoIndex === 2 ? 0.58 : mesoIndex === 5 ? 0.63 :
+                                    mesoIndex === 3 ? 0.67 : mesoIndex === 6 ? 0.73 :
+                                    mesoIndex === 4 ? 0.70 : mesoIndex === 7 ? 0.76 :
+                                    mesoIndex >= 10 ? 0.65 : 0.70;
+                    const rowWeight = Math.round((ONE_RM['Bench Press'] * rowPct * prog) / 5) * 5;
+                    const rowNotes = mesoIndex <= 1 ? "Strict form — full retraction at top" :
+                                      mesoIndex <= 3 ? "Controlled — 2 sec eccentric, pull to lower chest" :
+                                      mesoIndex <= 5 ? "Heavier load — maintain flat back, no body English" :
+                                      "Heavy rows — minimal momentum, max retraction";
+
+                    // DB Rows: ~35-50% of bench 1RM per arm, slightly behind barbell rows
+                    const dbRowPct = mesoIndex === 0 ? 0.35 :
+                                      mesoIndex === 1 ? 0.40 :
+                                      mesoIndex === 2 ? 0.45 : mesoIndex === 5 ? 0.50 :
+                                      mesoIndex === 3 ? 0.53 : mesoIndex === 6 ? 0.58 :
+                                      mesoIndex === 4 ? 0.55 : mesoIndex === 7 ? 0.60 :
+                                      mesoIndex >= 10 ? 0.48 : 0.53;
+                    const dbRowWeight = Math.round((ONE_RM['Bench Press'] * dbRowPct * prog) / 2) * 2;
+                    const dbRowReps = mesoIndex <= 1 ? "12/arm" :
+                                       mesoIndex <= 3 ? "8-10/arm" :
+                                       mesoIndex <= 5 ? "8/arm" :
+                                       mesoIndex <= 7 ? "5-6/arm" : "6/arm";
+                    const dbRowNotes = mesoIndex <= 1 ? "Full ROM — elbow past torso, slow lower" :
+                                        mesoIndex <= 3 ? "Control eccentric — 2 sec down" :
+                                        "Heavy unilateral pull — brace hard, no hip rotation";
+
+                    // Front Squat: 60-75% of squat weight (already loaded pattern, keep lighter than back squat)
+                    // Uses same auxReps/auxSets already set by phase
+                    const fsBenchmark = mesoIndex <= 1 ? 0.60 :
+                                         mesoIndex <= 3 ? 0.65 :
+                                         mesoIndex <= 5 ? 0.68 :
+                                         mesoIndex <= 7 ? 0.72 : 0.70;
+                    const frontSquatWeight = Math.round((ONE_RM['Squat'] * squatPct * fsBenchmark * prog) / 5) * 5;
+                    const frontSquatPctDisplay = Math.round(squatPct * fsBenchmark * 100) + "%";
+                    const frontSquatNotes = mesoIndex <= 1 ? "Upright torso — quad emphasis, slow eccentric" :
+                                             mesoIndex <= 3 ? "Controlled descent — pause at bottom 1-2 sec" :
+                                             mesoIndex <= 5 ? "Heavier FS — maintain elbows up throughout" :
+                                             "Heavy front squat — anterior chain strength";
+
+                    // Friday Bench (volume day): 78-85% of main bench weight by phase
+                    const fridayBenchPct = mesoIndex <= 1 ? 0.78 : mesoIndex <= 3 ? 0.80 : mesoIndex <= 5 ? 0.82 : 0.84;
+                    const fridayBenchWeight = Math.round((benchWeight * fridayBenchPct) / 5) * 5;
+                    const fridayBenchPctDisplay = Math.round(benchPct * fridayBenchPct * 100) + "%";
+                    const fridayBenchNotes = mesoIndex <= 1 ? "Volume bench — technique day, controlled reps" :
+                                              mesoIndex <= 3 ? "Volume — build to top set, leave 1-2 RIR" :
+                                              mesoIndex <= 5 ? "Moderate volume — match Mon intensity feel" :
+                                              "Heavy volume bench — bar speed focus on every rep";
+
+                    const session1 = [
+                        {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                        {name: "Squat", sets: mainSets, reps: mainReps, weight: String(squatWeight), percent: Math.round(squatPct*100)+"%", completed: false, notes: "Bar speed focus — compensatory acceleration"},
+                        {name: "Trap Bar Deadlift", sets: mainSets, reps: mainReps, weight: String(trapWeight), percent: Math.round(trapPct*100)+"%", completed: false, notes: "Hip drive — push floor away, not pull bar up"},
+                        {name: "RFESS", sets: auxSets, reps: auxReps+"/leg", weight: String(rfessWeight), percent: rfessPct*100|0 + "%", completed: false, notes: "Unilateral squat — DB in each hand, front foot elevated · Mike Boyle single-leg emphasis"}
+                    ];
+                    if (volume >= 6) session1.push({name: "Pallof Press", sets: pallofSets, reps: pallofReps, weight: String(pallofWeight), percent: "", completed: false, notes: "Anti-rotation core — brace before pressing out, hold 2 sec"});
+
+                    const session2 = [
+                        {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                        {name: "Power Clean", sets: mesoIndex >= 3 ? 5 : 4, reps: mesoIndex >= 7 ? "2-3" : "3", weight: String(cleanWeight), percent: Math.round(cleanPct*100)+"%", completed: false, notes: "Explosive triple extension — catch in quarter-squat"},
+                        {name: "Bench Press", sets: mainSets, reps: mainReps, weight: String(benchWeight), percent: Math.round(benchPct*100)+"%", completed: false, notes: "Leg drive — tight arch, drive feet through floor"},
+                        {name: "Pull-ups", sets: auxSets, reps: auxReps, weight: pullupWeight, percent: "", completed: false, notes: pullupNotes},
+                        {name: "DB Bench", sets: auxSets, reps: auxReps, weight: String(dbBenchWeight), percent: "", completed: false, notes: dbBenchNotes}
+                    ];
+                    if (volume >= 6) session2.push({name: "Barbell Rows", sets: auxSets, reps: auxReps, weight: String(rowWeight), percent: "", completed: false, notes: rowNotes});
+
+                    const session3 = [
+                        {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                        {name: "Front Squat", sets: auxSets, reps: auxReps, weight: String(frontSquatWeight), percent: frontSquatPctDisplay, completed: false, notes: frontSquatNotes},
+                        {name: "Bench Press", sets: auxSets, reps: auxReps, weight: String(fridayBenchWeight), percent: fridayBenchPctDisplay, completed: false, notes: fridayBenchNotes},
+                        {name: "DB Rows", sets: auxSets, reps: dbRowReps, weight: String(dbRowWeight), percent: "", completed: false, notes: dbRowNotes}
+                    ];
+
+                    const runMileage1 = mesoIndex === 0 ? (isRecovery ? 2 : 3) : mesoIndex <= 5 ? 4 : 5;
+                    const runMileage2 = mesoIndex === 0 ? (isRecovery ? 1.5 : 2.5) : mesoIndex <= 5 ? 3 : 4;
+
+                    const runProtocol = mesoIndex === 0 ? (isRecovery ? "Easy 15-20min" : "Easy 25min + strides") :
+                                       mesoIndex <= 5 ? "Tempo 25-30min" : "Intervals 6x800m";
+
+                    // Build Monday: lifting + phase-appropriate plyometrics
+                    const plyoExercises = getPlyoExercises(mesoIndex, isDeload);
+                    const mondayExercises = [...session1, ...plyoExercises];
+                    const mondayNotes = isDeload ? "DELOAD — Reduced volume" :
+                        mesoIndex === 0 ? "Active recovery" :
+                        mesoIndex <= 2 ? "Strength + Accumulation Plyos" :
+                        mesoIndex <= 4 ? "Strength + Intensive Plyos (Cal Dietz triphasic)" :
+                        mesoIndex <= 7 ? "Strength + Reactive Plyos — RFD peak" :
+                        mesoIndex === 9 ? "Complex Training — PAP pairs (DeFranco method)" :
+                        mesoIndex >= 10 ? "Peak Power — VJ specific" : "Strength + Plyos";
+
+                    // Build Saturday: phase-appropriate sprint work
+                    const sprintExercises = getSprintExercises(mesoIndex, isDeload, weekInBlock);
+                    const saturdayName = mesoIndex === 0 ? "Active Recovery" :
+                        mesoIndex === 1 ? "Sprint Mechanics" :
+                        mesoIndex <= 3 ? "Acceleration Development" :
+                        mesoIndex <= 5 ? "Speed-Strength" :
+                        mesoIndex <= 7 ? "30yd Dash Training" :
+                        mesoIndex === 9 ? "Complex Sprint (PAP)" :
+                        mesoIndex >= 10 ? "Peak Sprint / Sub-4.0 Prep" : "Sprint Work";
+                    const saturdayNotes = mesoIndex >= 7 ? "⚡ Sub-4.0 30yd Dash — TIME every rep · full CNS recovery between" :
+                        mesoIndex >= 4 ? "Speed-strength — reactive starts + acceleration" :
+                        "Sprint mechanics — Dan Pfaff / Derek Hansen principles";
+
+                    return [
+                        { name: "Lower Body + Plyos", day: "Monday", exercises: mondayExercises, notes: mondayNotes },
+                        { name: "Quality Run 1", day: "Tuesday", exercises: [{name: runProtocol, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Pace discipline", mileage: runMileage1, isRun: true}], notes: "Running" },
+                        { name: "Upper Body + Olympic", day: "Wednesday", exercises: session2, notes: "Technique focus" },
+                        { name: "Quality Run 2", day: "Thursday", exercises: [{name: "Easy 20-30min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Recovery", mileage: runMileage2, isRun: true}], notes: "Easy run" },
+                        { name: "Full Body", day: "Friday", exercises: session3, notes: "Volume accumulation" },
+                        { name: saturdayName, day: "Saturday", exercises: sprintExercises, notes: saturdayNotes }
+                    ];
+                }
+
+                const getDefaultData = () => ({
+                    currentWeekIndex: 0, oneRepMaxes: {...ONE_RM},
+                    goals: [
+                        {name: "5K Race", target: 21, current: 23, unit: "min", icon: "5K", higherIsBetter: false, targetText: "Sub-21:00 (Apr 30)"},
+                        {name: "Mile Time", target: 315, current: 360, unit: "sec", icon: "M", higherIsBetter: false, targetText: "5:15"},
+                        {name: "Squat", target: 365, current: 293, unit: "lbs", icon: "SQ", higherIsBetter: true},
+                        {name: "Trap Bar DL", target: 405, current: 405, unit: "lbs", icon: "DL", higherIsBetter: true},
+                        {name: "Bench Press", target: 255, current: 213, unit: "lbs", icon: "BP", higherIsBetter: true},
+                        {name: "Power Clean", target: 225, current: 165, unit: "lbs", icon: "PC", higherIsBetter: true},
+                        {name: "Vertical Jump", target: 18, current: 14, unit: "in", icon: "VJ", higherIsBetter: true},
+                        {name: "30yd Dash", target: 4.0, current: 4.5, unit: "sec", icon: "SP", higherIsBetter: false}
+                    ],
+                    weeks: generateAllWeeks(), lastUpdated: Date.now()
+                });
+
+                // ── Force-regenerate all sessions with periodized weights ────────────────────
+                // Helper: merge completion state from saved into freshly-generated exercises
+                const mergeCompletionState = (freshExercises, savedExercises) => {
+                    if (!savedExercises) return freshExercises;
+                    return freshExercises.map(freshEx => {
+                        const match = savedExercises.find(s => s.name === freshEx.name);
+                        return match ? {...freshEx, completed: match.completed} : freshEx;
+                    });
+                };
+
+                const migratePlyoSprint = (savedData) => {
+                    if (!savedData || !savedData.weeks) return savedData;
+                    savedData.weeks.forEach((week, weekIdx) => {
+                        const mesoIndex = Math.floor(weekIdx / 4);
+                        const weekInBlock = weekIdx % 4;
+                        const isDeload = weekInBlock === 3 && mesoIndex > 0;
+                        const isRecovery = mesoIndex === 0 && weekInBlock < 2;
+                        const volume = volumeData[weekIdx] || 5;
+
+                        // Generate completely fresh sessions for this week/phase
+                        const freshSessions = generateSessions(week.weekNum, mesoIndex, volume, isDeload, weekInBlock, isRecovery);
+
+                        // --- Monday (index 0): fresh lifting + new plyos, preserve completion ---
+                        if (week.sessions[0]) {
+                            const oldExercises = week.sessions[0].exercises || [];
+                            week.sessions[0] = {
+                                ...freshSessions[0],
+                                exercises: mergeCompletionState(freshSessions[0].exercises, oldExercises)
+                            };
+                        }
+
+                        // --- Wednesday (index 2): fresh upper body + new weights, preserve completion ---
+                        if (week.sessions[2]) {
+                            const oldExercises = week.sessions[2].exercises || [];
+                            week.sessions[2] = {
+                                ...freshSessions[2],
+                                exercises: mergeCompletionState(freshSessions[2].exercises, oldExercises)
+                            };
+                        }
+
+                        // --- Friday (index 4): fresh full body + new weights, preserve completion ---
+                        if (week.sessions[4]) {
+                            const oldExercises = week.sessions[4].exercises || [];
+                            week.sessions[4] = {
+                                ...freshSessions[4],
+                                exercises: mergeCompletionState(freshSessions[4].exercises, oldExercises)
+                            };
+                        }
+
+                        // --- Monday plyos already in freshSessions[0] via generateSessions → getPlyoExercises ---
+                        // (no separate step needed)
+                        const mon = week.sessions[0]; // just for legacy reference
+
+                        // --- Saturday (index 5): only replace if NOT a 5K overlay week (7-16) ---
+                        const isFiveKWeek = fiveKOverlay[week.weekNum];
+                        if (!isFiveKWeek) {
+                            const satName = mesoIndex === 0 ? "Active Recovery" :
+                                mesoIndex === 1 ? "Sprint Mechanics (Dan Pfaff)" :
+                                mesoIndex <= 3 ? "Acceleration Development" :
+                                mesoIndex <= 5 ? "Speed-Strength Sprints" :
+                                mesoIndex <= 7 ? "30yd Dash Training" :
+                                mesoIndex === 9 ? "Complex Sprint (PAP)" :
+                                mesoIndex >= 10 ? "⚡ Peak Sprint — Sub-4.0 Prep" : "Sprint Work";
+                            const satNotes = mesoIndex >= 7 ? "⚡ Sub-4.0 30yd Dash — TIME every rep · 4-5min full CNS recovery between" :
+                                mesoIndex >= 4 ? "Speed-strength — reactive starts + acceleration" :
+                                "Sprint mechanics — Dan Pfaff / Derek Hansen principles";
+                            week.sessions[5] = {
+                                name: satName,
+                                day: "Saturday",
+                                exercises: getSprintExercises(mesoIndex, isDeload, weekInBlock),
+                                notes: satNotes
+                            };
+                        }
+                    });
+                    savedData.lastUpdated = Date.now();
+                    return savedData;
+                };
+
+                // ── Force-fix goals: remove Half Marathon, ensure 5K Race present ─────────
+                const migrateGoals = (savedData) => {
+                    if (!savedData || !savedData.goals) return savedData;
+                    // Remove Half Marathon
+                    savedData.goals = savedData.goals.filter(g => g.name !== "Half Marathon");
+                    // Add 5K Race if missing
+                    const has5K = savedData.goals.some(g => g.name === "5K Race");
+                    if (!has5K) {
+                        savedData.goals.unshift({name: "5K Race", target: 21, current: 23, unit: "min", icon: "5K", higherIsBetter: false, targetText: "Sub-21:00 (Apr 30)"});
+                    }
+                    return savedData;
+                };
+
+                // ── Force-apply 5K overlay sessions to any loaded data ────────────────────
+                const migrate5KSessions = (savedData) => {
+                    if (!savedData || !savedData.weeks) return savedData;
+                    Object.keys(fiveKOverlay).forEach(weekNumStr => {
+                        const weekNum = parseInt(weekNumStr);
+                        const weekIdx = weekNum - 1; // 0-indexed
+                        if (!savedData.weeks[weekIdx]) return;
+                        const ov = fiveKOverlay[weekNum];
+                        const w = savedData.weeks[weekIdx];
+
+                        // Mark week as 5K overlay applied
+                        w.has5KOverlay = true;
+                        if (weekNum === 17) w.is5KRaceWeek = true;
+
+                        // Tuesday (session index 1)
+                        w.sessions[1] = {
+                            name: "5K Prep Quality Run",
+                            day: "Tuesday",
+                            exercises: [{ name: ov.tue.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.tue.notes, mileage: ov.tue.mileage, isRun: true }],
+                            notes: "🏃 5K Prep — Apr 30 Race Goal: Sub-21:00"
+                        };
+                        // Thursday (session index 3)
+                        w.sessions[3] = {
+                            name: "Easy Recovery Run",
+                            day: "Thursday",
+                            exercises: [{ name: ov.thu.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.thu.notes, mileage: ov.thu.mileage, isRun: true }],
+                            notes: "Easy only — 8:30-9:00/mi, no pushing"
+                        };
+                        // Thursday (index 3) = race day for week 18 (Apr 30 is a Thursday)
+                        if (weekNum === 17) {
+                            w.sessions[3] = {
+                                name: "🏁 5K RACE DAY — Thu Apr 30",
+                                day: "Thursday",
+                                exercises: [{ name: "🏁 5K RACE — Sub-21:00 Goal!", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Mile 1: 7:00 | Mile 2: 6:55 | Mile 3: 6:40 | TARGET: 20:35-20:45 🏆", mileage: 3.1, isRun: true }],
+                                notes: "🏁 RACE DAY — Thu Apr 30 — Sub-21:00!"
+                            };
+                        }
+                        // Saturday (session index 5)
+                        w.sessions[5] = {
+                            name: weekNum === 17 ? "Post-Race Recovery" : "5K Speed Work",
+                            day: "Saturday",
+                            exercises: [{ name: weekNum === 18 ? "Easy Recovery Run 20min" : ov.sat.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: weekNum === 17 ? "Post-race recovery · easy shuffle · celebrate the work" : ov.sat.notes, mileage: weekNum === 17 ? 2 : ov.sat.mileage, isRun: true }],
+                            notes: weekNum === 17 ? "🎉 Post-race recovery — Apr 30 5K done!" : "🏃 5K Speed — Apr 30 Race Goal: Sub-21:00"
+                        };
+                    });
+                    savedData.lastUpdated = Date.now();
+                    return savedData;
+                };
+
+                const migrateData = (savedData) => {
+                    if (!savedData || !savedData.weeks) return savedData;
+                    // Step 1: Add Daily Mile to lifting days if missing
+                    const firstMonday = savedData.weeks[0]?.sessions[0]?.exercises;
+                    const hasDailyMile = firstMonday?.some(ex => ex.name === "Daily Mile");
+                    if (!hasDailyMile) {
+                        console.log('Migrating data to add Daily Mile...');
+                        savedData.weeks.forEach((week, weekIdx) => {
+                            week.sessions.forEach((session, sessIdx) => {
+                                if (sessIdx === 0 || sessIdx === 2 || sessIdx === 4) {
+                                    if (!session.exercises.some(ex => ex.name === "Daily Mile")) {
+                                        session.exercises.unshift({
+                                            name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "",
+                                            completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true
+                                        });
+                                    }
+                                }
+                                if (sessIdx === 5) {
+                                    if (!session.exercises.some(ex => ex.name === "Daily Mile")) {
+                                        session.exercises.unshift({
+                                            name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "",
+                                            completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true
+                                        });
+                                    }
+                                }
+                                if (sessIdx === 1 || sessIdx === 3) {
+                                    session.exercises.forEach(ex => {
+                                        if (!ex.mileage) {
+                                            const mesoIndex = Math.floor(weekIdx / 4);
+                                            const isRecovery = weekIdx < 2;
+                                            if (sessIdx === 1) {
+                                                ex.mileage = mesoIndex === 0 ? (isRecovery ? 2 : 3) : mesoIndex <= 5 ? 4 : 5;
+                                            } else {
+                                                ex.mileage = mesoIndex === 0 ? (isRecovery ? 1.5 : 2.5) : mesoIndex <= 5 ? 3 : 4;
+                                            }
+                                            ex.isRun = true;
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    }
+                    // Step 2: ALWAYS fix goals (remove Half Marathon, add 5K Race)
+                    migrateGoals(savedData);
+                    // Step 3: ALWAYS inject periodized plyos into Monday + sprint work into Saturday
+                    migratePlyoSprint(savedData);
+                    // Step 4: ALWAYS force-apply 5K overlay — guarantees weeks 7-16 are race-specific
+                    return migrate5KSessions(savedData);
+                };
+
+                const getInitialData = () => {
+                    const saved = localStorage.getItem('chaseTraining56Week2026');
+                    if (saved) {
+                        try {
+                            const parsedData = JSON.parse(saved);
+                            return migrateData(parsedData);
+                        } catch (e) {
+                            console.log('Regenerating...');
+                        }
+                    }
+                    return getDefaultData();
+                };
+
+                function SyncIndicator({ status, lastSync }) {
+                    const info = status === 'synced' ? { text: 'Synced', cls: 'sync-online' } :
+                                 status === 'syncing' ? { text: 'Syncing...', cls: 'sync-syncing syncing-pulse' } :
+                                 status === 'offline' ? { text: 'Offline', cls: 'sync-offline' } :
+                                 { text: 'Error', cls: 'sync-offline' };
+                    return (
+                        <div className={`sync-indicator ${info.cls}`}>
+                            <span>{info.text}</span>
+                            {lastSync && status === 'synced' && <span className="text-xs opacity-75">{new Date(lastSync).toLocaleTimeString()}</span>}
+                        </div>
+                    );
+                }
+
+                function App() {
+                    const [data, setData] = useState(getInitialData);
+                    const [currentWeek, setCurrentWeek] = useState(data.currentWeekIndex || 0);
+                    const [currentSession, setCurrentSession] = useState(0);
+                    const [isEditMode, setIsEditMode] = useState(false);
+                    const [isEditingGoals, setIsEditingGoals] = useState(false);
+                    const [view, setView] = useState('overview');
+                    const [syncStatus, setSyncStatus] = useState('syncing');
+                    const [lastSync, setLastSync] = useState(null);
+                    const [isOnline, setIsOnline] = useState(navigator.onLine);
+                    const chartRef = useRef(null);
+                    const chartInstance = useRef(null);
+                    const macroChartRef = useRef(null);
+                    const macroChartInstance = useRef(null);
+                    const syncTimeoutRef = useRef(null);
+                    const isInitialLoad = useRef(true);
+                    const lastRemoteUpdate = useRef(0);
+
+                    const saveToFirebase = useCallback((newData) => {
+                        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+                        setSyncStatus('syncing');
+                        syncTimeoutRef.current = setTimeout(() => {
+                            const dataToSave = { ...newData, lastUpdated: Date.now() };
+                            dataRef.set(dataToSave)
+                                .then(() => { lastRemoteUpdate.current = dataToSave.lastUpdated; setSyncStatus('synced'); setLastSync(Date.now()); })
+                                .catch(() => setSyncStatus('error'));
+                        }, 500);
+                    }, []);
+
+                    useEffect(() => {
+                        const handleOnline = () => { setIsOnline(true); };
+                        const handleOffline = () => { setIsOnline(false); setSyncStatus('offline'); };
+                        window.addEventListener('online', handleOnline);
+                        window.addEventListener('offline', handleOffline);
+                        // Real-time listener — fires on load AND whenever another device saves
+                        const unsubscribe = dataRef.on('value', (snapshot) => {
+                            const remoteData = snapshot.val();
+                            if (remoteData) {
+                                // Only apply remote data if it's newer than what we last pushed
+                                // (prevents our own save echoing back and overwriting mid-edit)
+                                if (remoteData.lastUpdated > lastRemoteUpdate.current) {
+                                    const migratedData = migrateData(remoteData);
+                                    lastRemoteUpdate.current = remoteData.lastUpdated;
+                                    setData(migratedData);
+                                    setCurrentWeek(migratedData.currentWeekIndex || 0);
+                                    localStorage.setItem('chaseTraining56Week2026', JSON.stringify(migratedData));
+                                    setLastSync(remoteData.lastUpdated);
+                                }
+                            }
+                            setSyncStatus('synced');
+                            isInitialLoad.current = false;
+                        }, (error) => {
+                            console.warn('Firebase listener error:', error);
+                            setSyncStatus('offline');
+                            isInitialLoad.current = false;
+                        });
+                        return () => {
+                            window.removeEventListener('online', handleOnline);
+                            window.removeEventListener('offline', handleOffline);
+                            if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+                            dataRef.off('value', unsubscribe); // unsubscribe real-time listener
+                        };
+                    }, []);
+
+                    useEffect(() => {
+                        if (isInitialLoad.current) return; // don't auto-save during initial load
+                        const newData = {...data, currentWeekIndex: currentWeek};
+                        localStorage.setItem('chaseTraining56Week2026', JSON.stringify(newData));
+                        saveToFirebase(newData); // auto-sync every change to Firebase (debounced 800ms)
+                    }, [data, currentWeek]);
+
+                    useEffect(() => {
+                        if (view === 'goals' && chartRef.current && window.Chart) {
+                            if (chartInstance.current) chartInstance.current.destroy();
+                            chartInstance.current = new Chart(chartRef.current.getContext('2d'), {
+                                type: 'bar',
+                                data: {
+                                    labels: data.goals.map(g => g.name),
+                                    datasets: [
+                                        { label: 'Current', data: data.goals.map(g => g.current), backgroundColor: 'rgba(99, 102, 241, 0.7)' },
+                                        { label: 'Target', data: data.goals.map(g => g.target), backgroundColor: 'rgba(34, 197, 94, 0.7)' }
+                                    ]
+                                },
+                                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                            });
+                        }
+                        return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+                    }, [view, data.goals]);
+
+                    useEffect(() => {
+                        if (view === 'overview' && macroChartRef.current && window.Chart) {
+                            if (macroChartInstance.current) macroChartInstance.current.destroy();
+                            macroChartInstance.current = new Chart(macroChartRef.current.getContext('2d'), {
+                                type: 'line',
+                                data: {
+                                    labels: Array.from({length: TOTAL_WEEKS}, (_, i) => `W${i+1}`),
+                                    datasets: [
+                                        { label: 'Volume', data: volumeData, borderColor: 'rgba(59, 130, 246, 1)', fill: true, backgroundColor: 'rgba(59, 130, 246, 0.2)', tension: 0.4 },
+                                        { label: 'Intensity', data: intensityData, borderColor: 'rgba(239, 68, 68, 1)', fill: true, backgroundColor: 'rgba(239, 68, 68, 0.2)', tension: 0.4 }
+                                    ]
+                                },
+                                options: { responsive: true, scales: { y: { min: 0, max: 11 } } }
+                            });
+                        }
+                        return () => { if (macroChartInstance.current) macroChartInstance.current.destroy(); };
+                    }, [view, currentWeek]);
+
+                    const getProgress = (goal) => goal.higherIsBetter ? Math.min((goal.current / goal.target) * 100, 100) : Math.min((goal.target / goal.current) * 100, 100);
+                    const getProgressColor = (p) => p >= 90 ? 'bg-green-500' : p >= 70 ? 'bg-yellow-500' : 'bg-red-500';
+                    const updateGoal = (index, field, value) => { const newData = {...data}; newData.goals[index][field] = parseFloat(value) || 0; setData(newData); };
+                    const updateGoalTarget = (index, value) => {
+                        const newData = {...data};
+                        newData.goals[index].target = parseFloat(value) || 0;
+                        if (newData.goals[index].name === "Mile Time") {
+                            const totalSeconds = parseFloat(value) || 0;
+                            const mins = Math.floor(totalSeconds / 60);
+                            const secs = Math.round(totalSeconds % 60);
+                            newData.goals[index].targetText = `${mins}:${secs.toString().padStart(2, '0')}`;
+                        } else if (newData.goals[index].name === "Half Marathon") {
+                            const totalMins = parseFloat(value) || 0;
+                            const hours = Math.floor(totalMins / 60);
+                            const mins = Math.round(totalMins % 60);
+                            newData.goals[index].targetText = `${hours}:${mins.toString().padStart(2, '0')}`;
+                        }
+                        setData(newData);
+                    };
+                    const toggleExerciseComplete = (exerciseIndex) => {
+                        const newData = {...data};
+                        newData.weeks[currentWeek].sessions[currentSession].exercises[exerciseIndex].completed = !newData.weeks[currentWeek].sessions[currentSession].exercises[exerciseIndex].completed;
+                        setData(newData);
+                    };
+                    const updateExercise = (exerciseIndex, field, value) => { const newData = {...data}; newData.weeks[currentWeek].sessions[currentSession].exercises[exerciseIndex][field] = value; setData(newData); };
+                    const addExercise = () => { const newData = {...data}; newData.weeks[currentWeek].sessions[currentSession].exercises.push({name: "New Exercise", sets: 3, reps: "10", weight: "100", percent: "", completed: false, notes: ""}); setData(newData); };
+                    const deleteExercise = (idx) => { const newData = {...data}; newData.weeks[currentWeek].sessions[currentSession].exercises.splice(idx, 1); setData(newData); };
+                    const getSessionCompletion = () => { if (!data.weeks[currentWeek]) return 0; const s = data.weeks[currentWeek].sessions[currentSession]; return Math.round((s.exercises.filter(e => e.completed).length / s.exercises.length) * 100); };
+                    const resetData = () => { if (confirm('Reset all progress on all devices?')) { localStorage.removeItem('chaseTraining56Week2026'); dataRef.set(getDefaultData()).then(() => window.location.reload()); } };
+                    const forceSync = () => { setSyncStatus('syncing'); dataRef.set({...data, currentWeekIndex: currentWeek, lastUpdated: Date.now()}).then(() => { setSyncStatus('synced'); setLastSync(Date.now()); }).catch(() => setSyncStatus('error')); };
+
+                    const calcSessionVolume = (session) => {
+                        return session.exercises.reduce((total, ex) => {
+                            if (ex.completed && !ex.isRun && ex.weight && ex.weight !== 'BW' && ex.weight !== '') {
+                                const w = parseFloat(ex.weight) || 0;
+                                const s = parseInt(ex.sets) || 0;
+                                const r = parseInt(ex.reps) || 0;
+                                return total + (w * s * r);
+                            }
+                            return total;
+                        }, 0);
+                    };
+                    const calcWeekVolume = (weekIdx) => {
+                        if (!data.weeks[weekIdx]) return 0;
+                        return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcSessionVolume(sess), 0);
+                    };
+                    const calcTotalVolume = () => data.weeks.reduce((total, _, idx) => total + calcWeekVolume(idx), 0);
+                    const currentSessionVolume = data.weeks[currentWeek] ? calcSessionVolume(data.weeks[currentWeek].sessions[currentSession]) : 0;
+                    const currentWeekVolume = calcWeekVolume(currentWeek);
+                    const totalVolume = calcTotalVolume();
+
+                    const calcSessionMileage = (session) => {
+                        return session.exercises.reduce((total, ex) => {
+                            if (ex.completed && ex.mileage) return total + ex.mileage;
+                            return total;
+                        }, 0);
+                    };
+                    const calcWeekMileage = (weekIdx) => {
+                        if (!data.weeks[weekIdx]) return 0;
+                        return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcSessionMileage(sess), 0);
+                    };
+                    const calcTotalMileage = () => data.weeks.reduce((total, _, idx) => total + calcWeekMileage(idx), 0);
+                    const currentWeekMileage = calcWeekMileage(currentWeek);
+                    const totalMileage = calcTotalMileage();
+                    const weeksWithMileage = data.weeks.filter((_, idx) => calcWeekMileage(idx) > 0).length;
+                    const avgWeeklyMileage = weeksWithMileage > 0 ? (totalMileage / weeksWithMileage).toFixed(1) : 0;
+
+                    if (!data.weeks || !data.weeks[currentWeek]) {
+                        return (<div className="min-h-screen p-8 flex items-center justify-center"><SyncIndicator status={syncStatus} lastSync={lastSync} />
+                            <div className="glass rounded-2xl shadow-2xl p-8 text-center">
+                                <h2 className="text-2xl font-bold text-red-600 mb-4">Data Error</h2>
+                                <button onClick={resetData} className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold">Reset & Load</button>
+                            </div>
+                        </div>);
+                    }
+
+                    const week = data.weeks[currentWeek];
+                    const session = week.sessions[currentSession];
+                    const completion = getSessionCompletion();
+
+                    // 5K Race countdown
+                    const raceDate = new Date('2026-04-30');
+                    const today = new Date();
+                    const daysToRace = Math.max(0, Math.ceil((raceDate - today) / (1000 * 60 * 60 * 24)));
+
+                    // Max Out countdown — Week 53 starts Dec 31 2026 (Testing & Realization block)
+                    const maxOutDate = new Date('2026-12-31');
+                    const daysToMaxOut = Math.max(0, Math.ceil((maxOutDate - today) / (1000 * 60 * 60 * 24)));
+
+                    return (
+                        <div className="min-h-screen p-4 md:p-8">
+                            <SyncIndicator status={syncStatus} lastSync={lastSync} />
+                            <div className="max-w-7xl mx-auto">
+                                <div className="glass rounded-2xl shadow-2xl p-6 md:p-8 mb-6 animate-slide-in">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-2">Chase's 56-Week Training</h1>
+                                            <p className="text-gray-600 text-lg">Week {currentWeek + 1} of {TOTAL_WEEKS} — {week.phase}</p>
+                                            <p className="text-gray-500 text-sm mt-1">📅 {getWeekLabel(week.weekNum)}</p>
+                                            <p className="text-sm text-purple-700 font-semibold mt-2">4 Weeks Recovery + 52 Weeks Concurrent Training</p>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <button onClick={forceSync} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-semibold">Sync</button>
+                                            {daysToRace <= 75 && (
+                                                <div className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-bold text-right">
+                                                    🏁 5K Race in {daysToRace} days<br/>
+                                                    <span className="text-xs opacity-90">Apr 30 · Sub-21:00</span>
+                                                </div>
+                                            )}
+                                            {daysToMaxOut > 0 && (
+                                                <div className="bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold text-right">
+                                                    💪 Max Out in {daysToMaxOut} days<br/>
+                                                    <span className="text-xs opacity-90">Dec 31 · Testing & Realization</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="glass rounded-xl shadow-lg p-4 mb-6 flex flex-wrap gap-3">
+                                    {['overview', 'goals', 'volume', 'mileage', 'workout'].map(v => (
+                                        <button key={v} onClick={() => setView(v)} className={`px-6 py-3 rounded-lg font-semibold transition-all ${view === v ? 'bg-purple-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
+                                            {v.charAt(0).toUpperCase() + v.slice(1)}
+                                        </button>
+                                    ))}
+                                    <button onClick={() => setIsEditMode(!isEditMode)} className={`ml-auto px-6 py-3 rounded-lg font-semibold transition-all ${isEditMode ? 'bg-orange-500 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
+                                        {isEditMode ? 'Editing' : 'Edit'}
+                                    </button>
+                                </div>
+
+                                {view === 'overview' && (
+                                    <div className="space-y-6">
+                                        {daysToRace <= 75 && (
+                                            <div className="glass rounded-xl shadow-lg p-6 border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-red-50">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <h3 className="text-2xl font-bold text-orange-700">🏁 5K Race — April 30</h3>
+                                                        <p className="text-orange-600 font-semibold mt-1">Target: Sub-21:00 · Current PR: 23:00</p>
+                                                        <p className="text-sm text-gray-600 mt-2">Thu Apr 30 · Splits: Mile 1 @ 7:00 · Mile 2 @ 6:55 · Mile 3 @ 6:40</p>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <div className="text-5xl font-bold text-orange-600">{daysToRace}</div>
+                                                        <div className="text-sm text-orange-500 font-semibold">days to go</div>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4 grid grid-cols-5 gap-2">
+                                                    {[7,8,9,10,11,12,13,14,15,16,17].map(wk => (
+                                                        <div key={wk} onClick={() => { setCurrentWeek(wk-1); setView('workout'); }}
+                                                            className={`p-2 rounded-lg text-center cursor-pointer text-xs transition-all border-2 ${currentWeek === wk-1 ? 'bg-orange-500 text-white border-orange-600' : 'bg-white border-orange-200 hover:border-orange-400'}`}>
+                                                            <div className="font-bold">W{wk}</div>
+                                                            <div className="opacity-75 text-xs">{wk===17?'🏁': wk===8||wk===12||wk===15?'DL':'Q'}{wk===17?'Race':wk===8||wk===12||wk===15?'oad':''}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {daysToMaxOut > 0 && (
+                                            <div className="glass rounded-xl shadow-lg p-6 border-2 border-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <h3 className="text-2xl font-bold text-purple-800">💪 Max Out Day — December 31</h3>
+                                                        <p className="text-purple-700 font-semibold mt-1">Testing & Realization Block · All Goals on the Line</p>
+                                                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                                            <div className="bg-white rounded-lg p-2 border border-purple-200">
+                                                                <span className="font-bold text-purple-700">Squat:</span> <span className="text-gray-700">365 lbs</span>
+                                                            </div>
+                                                            <div className="bg-white rounded-lg p-2 border border-purple-200">
+                                                                <span className="font-bold text-purple-700">Trap Bar DL:</span> <span className="text-gray-700">405 lbs</span>
+                                                            </div>
+                                                            <div className="bg-white rounded-lg p-2 border border-purple-200">
+                                                                <span className="font-bold text-purple-700">Bench Press:</span> <span className="text-gray-700">255 lbs</span>
+                                                            </div>
+                                                            <div className="bg-white rounded-lg p-2 border border-purple-200">
+                                                                <span className="font-bold text-purple-700">Vertical Jump:</span> <span className="text-gray-700">18 in</span>
+                                                            </div>
+                                                            <div className="bg-white rounded-lg p-2 border border-purple-200">
+                                                                <span className="font-bold text-purple-700">30yd Dash:</span> <span className="text-gray-700">Sub-4.0 sec</span>
+                                                            </div>
+                                                            <div className="bg-white rounded-lg p-2 border border-purple-200">
+                                                                <span className="font-bold text-purple-700">Mile:</span> <span className="text-gray-700">Sub-5:15</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-center ml-4 flex-shrink-0">
+                                                        <div className="text-5xl font-bold text-purple-700">{daysToMaxOut}</div>
+                                                        <div className="text-sm text-purple-500 font-semibold">days to go</div>
+                                                        <div className="mt-3 text-xs text-purple-400">56 weeks of work</div>
+                                                        <div className="mt-1 text-xs text-purple-400">all comes down to this — Week 52</div>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4">
+                                                    <div className="flex justify-between text-xs text-purple-600 mb-1">
+                                                        <span>Progress through program</span>
+                                                        <span>{Math.round((currentWeek / TOTAL_WEEKS) * 100)}%</span>
+                                                    </div>
+                                                    <div className="w-full h-3 bg-purple-100 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all"
+                                                            style={{width: Math.round((currentWeek / TOTAL_WEEKS) * 100) + '%'}}></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h2 className="text-2xl font-bold text-gray-800 mb-4">56-Week Periodization</h2>
+                                            <div className="bg-white rounded-lg p-4 mb-6"><canvas ref={macroChartRef}></canvas></div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div className="bg-blue-50 rounded-lg p-4"><p className="text-sm text-gray-600">Total</p><p className="text-3xl font-bold text-blue-600">{TOTAL_WEEKS}</p></div>
+                                                <div className="bg-green-50 rounded-lg p-4"><p className="text-sm text-gray-600">Current</p><p className="text-3xl font-bold text-green-600">{currentWeek + 1}</p></div>
+                                                <div className="bg-purple-50 rounded-lg p-4"><p className="text-sm text-gray-600">Remaining</p><p className="text-3xl font-bold text-purple-600">{TOTAL_WEEKS - currentWeek}</p></div>
+                                                <div className="bg-orange-50 rounded-lg p-4"><p className="text-sm text-gray-600">Progress</p><p className="text-3xl font-bold text-orange-600">{Math.round((currentWeek / TOTAL_WEEKS) * 100)}%</p></div>
+                                            </div>
+                                        </div>
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h3 className="text-xl font-bold text-gray-800 mb-4">Week Navigator</h3>
+                                            <div className="grid grid-cols-7 md:grid-cols-14 gap-1">
+                                                {data.weeks.map((w, idx) => (
+                                                    <button key={idx} onClick={() => { setCurrentWeek(idx); setView('workout'); }}
+                                                        className={`p-2 rounded text-center text-xs transition-all hover:shadow ${
+                                                            idx === currentWeek ? 'bg-green-500 text-white current-week-indicator' :
+                                                            w.is5KRaceWeek ? 'race-week' :
+                                                            w.isRecovery ? 'recovery-week' : w.isGeneralPrep ? 'general-prep-week' :
+                                                            w.isDeload ? 'deload-week' : w.isTestWeek ? 'test-week' : 'bg-white hover:bg-purple-50'
+                                                        }`} title={`${w.is5KRaceWeek ? '🏁 5K RACE WEEK — ' : ''}${w.phase} · ${getWeekLabel(w.weekNum)}`}>
+                                                        <div className="font-bold">{w.weekNum}</div>
+                                                        <div className="opacity-70" style={{fontSize:'8px', lineHeight:'1.1'}}>{fmtDate(getWeekStartDate(w.weekNum))}</div>
+                                                        {w.is5KRaceWeek && <div className="text-xs">🏁</div>}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="mt-4 flex flex-wrap gap-4 text-sm">
+                                                <div className="flex items-center gap-2"><div className="w-4 h-4 recovery-week rounded"></div><span>Recovery</span></div>
+                                                <div className="flex items-center gap-2"><div className="w-4 h-4 general-prep-week rounded"></div><span>Gen Prep</span></div>
+                                                <div className="flex items-center gap-2"><div className="w-4 h-4 deload-week rounded"></div><span>Deload</span></div>
+                                                <div className="flex items-center gap-2"><div className="w-4 h-4 test-week rounded"></div><span>Test</span></div>
+                                                <div className="flex items-center gap-2"><div className="w-4 h-4 race-week rounded"></div><span>🏁 Race Week</span></div>
+                                            </div>
+                                        </div>
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h3 className="text-xl font-bold text-gray-800 mb-4">Current Block</h3>
+                                            <div className={`rounded-lg p-6 ${week.isRecovery ? 'bg-gradient-to-r from-green-50 to-emerald-50' : week.isDeload ? 'bg-gradient-to-r from-yellow-50 to-orange-50' : 'bg-gradient-to-r from-purple-50 to-blue-50'}`}>
+                                                <p className="text-sm text-gray-600 mb-2">Week {week.weekNum} — Mesocycle {week.mesocycle}, Week {week.weekInBlock} &nbsp;·&nbsp; <span className="font-semibold text-purple-600">{getWeekLabel(week.weekNum)}</span></p>
+                                                <h4 className="text-2xl font-bold text-purple-700 mb-2">{week.phase}</h4>
+                                                <p className="text-gray-700 font-medium">{week.trainingEmphasis}</p>
+                                                <p className="text-gray-600 text-sm mt-2">{week.focus}</p>
+                                                {fiveKOverlay[week.weekNum] && (
+                                                    <div className="mt-3 p-3 bg-orange-100 rounded-lg border border-orange-300">
+                                                        <p className="text-sm font-bold text-orange-700">🏃 5K Prep Active — Running sessions modified for Apr 30 race</p>
+                                                    </div>
+                                                )}
+                                                <div className="flex gap-4 mt-4">
+                                                    <div className="bg-white rounded-lg p-4 flex-1"><p className="text-xs text-gray-600">Volume</p><p className="text-2xl font-bold text-blue-600">{week.volume}/10</p></div>
+                                                    <div className="bg-white rounded-lg p-4 flex-1"><p className="text-xs text-gray-600">Intensity</p><p className="text-2xl font-bold text-red-600">{week.intensity}/10</p></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {view === 'goals' && (
+                                    <div className="space-y-4">
+                                        <div className="glass rounded-xl shadow-lg p-4 flex justify-end">
+                                            <button onClick={() => setIsEditingGoals(!isEditingGoals)}
+                                                className={`px-6 py-2 rounded-lg font-semibold transition-all ${isEditingGoals ? 'bg-orange-500 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
+                                                {isEditingGoals ? '✓ Done Editing Goals' : '✎ Edit Goals'}
+                                            </button>
+                                        </div>
+                                        {data.goals.map((goal, index) => {
+                                            const progress = getProgress(goal);
+                                            return (
+                                                <div key={index} className={`glass rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all ${goal.name === '5K Race' ? 'border-2 border-orange-400' : ''}`}>
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className={`text-2xl font-bold px-3 py-1 rounded ${goal.name === '5K Race' ? 'text-orange-600 bg-orange-100' : 'text-purple-600 bg-purple-100'}`}>{goal.icon}</span>
+                                                            <div>
+                                                                <h3 className="text-2xl font-bold text-gray-800">{goal.name}</h3>
+                                                                <div className="text-sm text-gray-600 flex items-center gap-2">
+                                                                    <span>Target:</span>
+                                                                    {isEditingGoals ? (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <input type="number" step="0.1" value={goal.target}
+                                                                                onChange={(e) => updateGoalTarget(index, e.target.value)}
+                                                                                className="w-24 px-2 py-1 border-2 border-orange-300 rounded text-sm font-bold"/>
+                                                                            <span>{goal.unit}</span>
+                                                                            {goal.targetText && <span className="text-purple-600">({goal.targetText})</span>}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="font-bold">{goal.targetText || goal.target + ' ' + goal.unit}</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            {isEditMode ? (
+                                                                <input type="number" step="0.1" value={goal.current} onChange={(e) => updateGoal(index, 'current', e.target.value)}
+                                                                    className="w-24 px-3 py-2 border-2 border-purple-300 rounded-lg text-xl font-bold text-right"/>
+                                                            ) : (<span className="text-3xl font-bold text-purple-600">{goal.current}</span>)}
+                                                            <span className="text-gray-600 ml-2">{goal.unit}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                                                        <div className={`progress-bar h-full ${goal.name === '5K Race' ? 'bg-orange-500' : getProgressColor(progress)} rounded-full`} style={{width: progress + '%'}}></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-6">Performance Chart</h3>
+                                            <div className="bg-white rounded-lg p-4"><canvas ref={chartRef}></canvas></div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {view === 'volume' && (
+                                    <div className="space-y-6">
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h2 className="text-2xl font-bold text-gray-800 mb-2">Training Volume Calculator</h2>
+                                            <p className="text-sm text-gray-500 mb-6">Total volume calculated as Sets x Reps x Weight for all resistance exercises</p>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 border-2 border-yellow-300">
+                                                    <p className="text-xs font-bold text-yellow-700 uppercase mb-1">Total Volume (56 Weeks)</p>
+                                                    <p className="text-5xl font-bold text-yellow-600">{(totalVolume/1000).toFixed(1)}k</p>
+                                                    <p className="text-sm text-yellow-600">lbs lifted</p>
+                                                </div>
+                                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-300">
+                                                    <p className="text-xs font-bold text-blue-700 uppercase mb-1">This Week Volume</p>
+                                                    <p className="text-5xl font-bold text-blue-600">{(currentWeekVolume/1000).toFixed(1)}k</p>
+                                                    <p className="text-sm text-blue-600">lbs lifted</p>
+                                                </div>
+                                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border-2 border-green-300">
+                                                    <p className="text-xs font-bold text-green-700 uppercase mb-1">Today's Session</p>
+                                                    <p className="text-5xl font-bold text-green-600">{(currentSessionVolume/1000).toFixed(1)}k</p>
+                                                    <p className="text-sm text-green-600">lbs lifted</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h3 className="text-xl font-bold text-yellow-800 mb-4">Current Week Breakdown (Week {currentWeek + 1})</h3>
+                                            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4">
+                                                {data.weeks[currentWeek].sessions.map((sess, sIdx) => (
+                                                    <div key={sIdx} className="flex justify-between items-center py-3 border-b border-yellow-200 last:border-0">
+                                                        <span className="text-gray-700 font-medium">{sess.day} - {sess.name}</span>
+                                                        <span className="text-xl font-bold text-orange-600">{(calcSessionVolume(sess)/1000).toFixed(1)}k lbs</span>
+                                                    </div>
+                                                ))}
+                                                <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-yellow-400">
+                                                    <span className="text-lg font-bold text-yellow-800">WEEK TOTAL</span>
+                                                    <span className="text-2xl font-bold text-orange-600">{(currentWeekVolume/1000).toFixed(1)}k lbs</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h3 className="text-xl font-bold text-gray-800 mb-4">Volume by Week</h3>
+                                            <div className="max-h-96 overflow-y-auto">
+                                                {data.weeks.map((w, wIdx) => {
+                                                    const wVolume = calcWeekVolume(wIdx);
+                                                    const maxVolume = 80000;
+                                                    const barWidth = Math.min((wVolume / maxVolume) * 100, 100);
+                                                    const phaseLabel = w.isRecovery ? 'Recovery ' + w.weekInBlock : w.isGeneralPrep ? 'General Prep ' + w.weekInBlock : w.trainingEmphasis.substring(0, 12);
+                                                    return (
+                                                        <div key={wIdx} className={`flex items-center py-3 px-3 rounded-lg mb-2 ${wIdx === currentWeek ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-50'}`}>
+                                                            <span className="w-20 font-bold text-gray-800">W{w.weekNum}</span>
+                                                            <span className="w-24 text-xs text-gray-400">{fmtDate(getWeekStartDate(w.weekNum))}</span>
+                                                            <span className="w-28 text-xs text-gray-500 flex items-center gap-1">
+                                                                <span className={`w-3 h-3 rounded-full flex-shrink-0 ${w.isRecovery ? 'bg-green-500' : w.isGeneralPrep ? 'bg-emerald-400' : w.isDeload ? 'bg-yellow-500' : w.isTestWeek ? 'bg-red-500' : 'bg-purple-500'}`}></span>
+                                                                {phaseLabel}
+                                                            </span>
+                                                            <div className="flex-1 mx-3 h-5 bg-gray-200 rounded-full overflow-hidden">
+                                                                <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all" style={{width: barWidth + '%'}}></div>
+                                                            </div>
+                                                            <span className="w-24 text-right font-bold text-orange-600">{(wVolume/1000).toFixed(1)}k lbs</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {view === 'mileage' && (
+                                    <div className="space-y-6">
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h2 className="text-2xl font-bold text-gray-800 mb-6">Running Mileage Tracker</h2>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                                <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border-2 border-green-400">
+                                                    <p className="text-xs font-bold text-green-700 uppercase mb-1">Total Mileage</p>
+                                                    <p className="text-5xl font-bold text-green-600">{totalMileage.toFixed(1)}</p>
+                                                    <p className="text-sm text-green-600">miles</p>
+                                                </div>
+                                                <div className="bg-gradient-to-br from-blue-50 to-cyan-100 rounded-xl p-6 border-2 border-blue-400">
+                                                    <p className="text-xs font-bold text-blue-700 uppercase mb-1">This Week</p>
+                                                    <p className="text-5xl font-bold text-blue-600">{currentWeekMileage.toFixed(1)}</p>
+                                                    <p className="text-sm text-blue-600">miles</p>
+                                                </div>
+                                                <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl p-6 border-2 border-purple-400">
+                                                    <p className="text-xs font-bold text-purple-700 uppercase mb-1">Weekly Avg</p>
+                                                    <p className="text-5xl font-bold text-purple-600">{avgWeeklyMileage}</p>
+                                                    <p className="text-sm text-purple-600">miles/week</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h3 className="text-xl font-bold text-gray-800 mb-4">Weekly Mileage Breakdown</h3>
+                                            <div className="max-h-96 overflow-y-auto">
+                                                {data.weeks.map((w, wIdx) => {
+                                                    const wMileage = calcWeekMileage(wIdx);
+                                                    const maxMileage = 25;
+                                                    const barWidth = Math.min((wMileage / maxMileage) * 100, 100);
+                                                    const phaseLabel = w.isRecovery ? 'Recovery ' + w.weekInBlock : w.isGeneralPrep ? 'General Prep ' + w.weekInBlock : w.trainingEmphasis.substring(0, 12);
+                                                    return (
+                                                        <div key={wIdx} className={`flex items-center py-3 px-3 rounded-lg mb-2 ${wIdx === currentWeek ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-50'}`}>
+                                                            <span className="w-20 font-bold text-gray-800">W{w.weekNum}</span>
+                                                            <span className="w-24 text-xs text-gray-400">{fmtDate(getWeekStartDate(w.weekNum))}</span>
+                                                            <span className="w-28 text-xs text-gray-500 flex items-center gap-1">
+                                                                <span className={`w-3 h-3 rounded-full flex-shrink-0 ${w.isRecovery ? 'bg-green-500' : w.isGeneralPrep ? 'bg-emerald-400' : w.isDeload ? 'bg-yellow-500' : w.isTestWeek ? 'bg-red-500' : 'bg-blue-500'}`}></span>
+                                                                {phaseLabel}
+                                                            </span>
+                                                            <div className="flex-1 mx-3 h-5 bg-gray-200 rounded-full overflow-hidden">
+                                                                <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all" style={{width: barWidth + '%'}}></div>
+                                                            </div>
+                                                            <span className="w-20 text-right font-bold text-blue-600">{wMileage.toFixed(1)} mi</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {view === 'workout' && (
+                                    <div className="space-y-6">
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Week</label>
+                                                    <select value={currentWeek} onChange={(e) => { setCurrentWeek(parseInt(e.target.value)); setCurrentSession(0); }}
+                                                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg">
+                                                        {data.weeks.map((w, i) => (<option key={i} value={i}>W{w.weekNum} ({getWeekLabel(w.weekNum)}): {w.phase}{w.isDeload ? ' — Deload' : ''}{w.is5KRaceWeek ? ' 🏁 RACE WEEK' : ''}</option>))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Session</label>
+                                                    <select value={currentSession} onChange={(e) => setCurrentSession(parseInt(e.target.value))}
+                                                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg">
+                                                        {week.sessions.map((s, i) => (<option key={i} value={i}>{s.day}: {s.name}</option>))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            {fiveKOverlay[week.weekNum] && (
+                                                <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
+                                                    <p className="text-sm font-bold text-orange-700">🏃 5K Prep Week — Running sessions modified for Apr 30 race · Strength stays unchanged</p>
+                                                </div>
+                                            )}
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div className="bg-purple-50 rounded-lg p-4"><p className="text-xs text-gray-600">Completion</p><p className="text-2xl font-bold text-purple-600">{completion}%</p></div>
+                                                <div className="bg-blue-50 rounded-lg p-4"><p className="text-xs text-gray-600">Session Vol</p><p className="text-2xl font-bold text-blue-600">{(currentSessionVolume/1000).toFixed(1)}k</p></div>
+                                                <div className="bg-green-50 rounded-lg p-4"><p className="text-xs text-gray-600">Week Vol</p><p className="text-2xl font-bold text-green-600">{(currentWeekVolume/1000).toFixed(1)}k</p></div>
+                                                <div className="bg-orange-50 rounded-lg p-4"><p className="text-xs text-gray-600">Intensity</p><p className="text-2xl font-bold text-orange-600">{week.intensity}/10</p></div>
+                                            </div>
+                                        </div>
+
+                                        <div className="glass rounded-xl shadow-lg overflow-hidden">
+                                            <div className={`p-6 ${week.is5KRaceWeek ? 'bg-gradient-to-r from-orange-500 to-red-500' : week.isRecovery ? 'bg-gradient-to-r from-green-500 to-emerald-600' : week.isDeload ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : week.isTestWeek ? 'bg-gradient-to-r from-red-500 to-pink-600' : 'bg-gradient-to-r from-purple-600 to-blue-600'} text-white`}>
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <h2 className="text-3xl font-bold">{session.name}</h2>
+                                                        <p className="opacity-90">{session.day} {getSessionDate(week.weekNum, DAY_OFFSETS[session.day] ?? 0)} — {session.notes}</p>
+                                                    </div>
+                                                    {isEditMode && <button onClick={addExercise} className="px-4 py-2 bg-white text-purple-600 rounded-lg font-semibold">+ Add</button>}
+                                                </div>
+                                            </div>
+                                            <div className="p-6 overflow-x-auto">
+                                                <table className="w-full">
+                                                    <thead><tr className="border-b-2 border-gray-200">
+                                                        <th className="px-4 py-3 text-left">Done</th><th className="px-4 py-3 text-left">Exercise</th>
+                                                        <th className="px-4 py-3 text-center">Sets</th><th className="px-4 py-3 text-center">Reps</th>
+                                                        <th className="px-4 py-3 text-center">Weight</th><th className="px-4 py-3 text-center">%1RM</th>
+                                                        <th className="px-4 py-3 text-left">Notes</th>{isEditMode && <th className="px-4 py-3">Del</th>}
+                                                    </tr></thead>
+                                                    <tbody>
+                                                        {session.exercises.map((ex, idx) => (
+                                                            <tr key={idx} className={`border-b border-gray-200 exercise-row ${ex.completed ? 'completed' : ''}`}>
+                                                                <td className="px-4 py-3"><input type="checkbox" checked={ex.completed} onChange={() => toggleExerciseComplete(idx)} className="w-5 h-5"/></td>
+                                                                <td className="px-4 py-3">{isEditMode ? <input type="text" value={ex.name} onChange={(e) => updateExercise(idx, 'name', e.target.value)} className="w-full px-2 py-1 border rounded"/> : <span className="font-semibold exercise-name">{ex.name}</span>}</td>
+                                                                <td className="px-4 py-3 text-center">{isEditMode ? <input type="number" value={ex.sets} onChange={(e) => updateExercise(idx, 'sets', e.target.value)} className="w-16 px-2 py-1 border rounded text-center"/> : <span className="font-semibold">{ex.sets}</span>}</td>
+                                                                <td className="px-4 py-3 text-center">{isEditMode ? <input type="text" value={ex.reps} onChange={(e) => updateExercise(idx, 'reps', e.target.value)} className="w-20 px-2 py-1 border rounded text-center"/> : <span>{ex.reps}</span>}</td>
+                                                                <td className="px-4 py-3 text-center">{isEditMode ? <input type="text" value={ex.weight || ''} onChange={(e) => updateExercise(idx, 'weight', e.target.value)} className="w-24 px-2 py-1 border rounded text-center"/> : <span className="font-medium">{ex.weight || '-'} {ex.weight && ex.weight !== 'BW' && 'lbs'}</span>}</td>
+                                                                <td className="px-4 py-3 text-center"><span className={ex.percent ? 'bg-orange-100 text-orange-700 px-2 py-1 rounded font-semibold' : ''}>{ex.percent || '-'}</span></td>
+                                                                <td className="px-4 py-3 text-xs text-gray-600">{ex.notes}{ex.mileage && <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold">{ex.mileage} mi</span>}</td>
+                                                                {isEditMode && <td className="px-4 py-3"><button onClick={() => deleteExercise(idx)} className="px-3 py-1 bg-red-500 text-white rounded">X</button></td>}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {isEditMode && (
+                                            <button onClick={resetData} className="w-full glass rounded-xl shadow-lg p-6 hover:shadow-2xl bg-red-50">
+                                                <h3 className="text-xl font-bold text-red-600">Reset Program</h3>
+                                                <p className="text-sm text-gray-600 mt-2">Deletes all progress on all devices</p>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                }
+
+                const root = ReactDOM.createRoot(document.getElementById('root'));
+                root.render(<App />);
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.body.innerHTML += '<div style="color: white; background: rgba(255,0,0,0.8); margin: 20px; padding: 20px; border-radius: 10px;"><h2>Error</h2><p>' + error.message + '</p></div>';
+                console.error(error);
+            }
+        });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW registered, scope:', reg.scope))
+                    .catch(err => console.warn('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>

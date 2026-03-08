@@ -1,0 +1,35 @@
+{
+  "name": "Chase 2026 Training",
+  "short_name": "Training",
+  "description": "56-Week Athletic Training Program — Strength, Speed & Running",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f3f0ff",
+  "theme_color": "#6d28d9",
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%236d28d9'/><text x='50%' y='58%' font-size='100' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'>💪</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%236d28d9'/><text x='50%' y='58%' font-size='280' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'>💪</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "fitness", "sports"],
+  "shortcuts": [
+    {
+      "name": "This Week's Workout",
+      "short_name": "Workout",
+      "url": "./index.html",
+      "description": "Jump to today's training session"
+    }
+  ]
+}
