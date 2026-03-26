@@ -286,7 +286,8 @@
                     10, 10, 10, 10// Weeks 53-56: Testing
                 ];
 
-                const ONE_RM = { 'Squat': 365, 'Bench Press': 255, 'Trap Bar Deadlift': 405, 'Power Clean': 225 };
+                // CURRENT tested 1RMs — NOT goal weights. Retest every 8-12 weeks to update.
+                const ONE_RM = { 'Squat': 293, 'Bench Press': 213, 'Trap Bar Deadlift': 405, 'Power Clean': 165 };
 
                 const mesocycles = [
                     { name: "Recovery & General Prep", weeks: 4, focus: "Post-race recovery and foundation", trainingEmphasis: "Active Recovery" },
@@ -305,46 +306,32 @@
                     { name: "Testing & Realization", weeks: 4, focus: "Test all goals", trainingEmphasis: "Max Out" }
                 ];
 
-                // ── 5K RACE PREP OVERLAY (Weeks 7-16, Race: Apr 30) ──────────────────────
+                // ── 5K RACE PREP OVERLAY (Weeks 7-17, Race: Apr 30) ──────────────────────
+                // Only overrides Tuesday (quality run) and Thursday (easy run).
+                // Saturday stays as PLYOS + SPRINT MECHANICS — 1 speed workout per week only.
                 const fiveKOverlay = {
                     7:  { tue: { name: "3x1 Mile @ 7:30/mi", mileage: 3.5, notes: "5K Prep W1 · 2min rest | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 25min Run", mileage: 2.5, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "4x200m @ 6K Effort", mileage: 1.5, notes: "5K speed feel · full recovery between" } },
+                          thu: { name: "Easy 25min Run", mileage: 2.5, notes: "True easy pace 8:30-9:00/mi only" } },
                     8:  { tue: { name: "2x1 Mile @ 7:20 + 4x200m", mileage: 3, notes: "5K Prep W2 (Deload) · 90s rest" },
-                          thu: { name: "Easy 20min Run", mileage: 2, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "6x100m Strides", mileage: 1, notes: "Relaxed, fast · full recovery between" } },
+                          thu: { name: "Easy 20min Run", mileage: 2, notes: "True easy pace 8:30-9:00/mi only" } },
                     9:  { tue: { name: "4x800m @ 6:35/mi", mileage: 3.5, notes: "5K Prep W3 · 90s rest | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "4x400m @ 6:30/mi", mileage: 2, notes: "5K speed work · 2min rest" } },
+                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" } },
                     10: { tue: { name: "20min Tempo @ 7:10/mi", mileage: 3, notes: "5K Prep W4 · comfortably hard | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "6x200m @ 6:20/mi", mileage: 2, notes: "5K speed · 90s rest" } },
+                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" } },
                     11: { tue: { name: "5x800m @ 6:30/mi", mileage: 4, notes: "5K Prep W5 · 90s rest | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 35min Run", mileage: 3.5, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "4x400m @ 6:25/mi", mileage: 2, notes: "5K speed work · 2min rest" } },
+                          thu: { name: "Easy 35min Run", mileage: 3.5, notes: "True easy pace 8:30-9:00/mi only" } },
                     12: { tue: { name: "3x800m @ 6:30/mi", mileage: 2.5, notes: "5K Prep W6 (Deload) · 2min rest | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 25min Run", mileage: 2.5, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "6x100m Strides", mileage: 1, notes: "Strides only · keep legs fresh" } },
+                          thu: { name: "Easy 25min Run", mileage: 2.5, notes: "True easy pace 8:30-9:00/mi only" } },
                     13: { tue: { name: "25min Tempo @ 7:05/mi", mileage: 3.5, notes: "5K Prep W7 · strong sustained effort | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "3x1 Mile @ 6:55/mi", mileage: 3.5, notes: "5K race pace work · 2min rest" } },
+                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" } },
                     14: { tue: { name: "6x800m @ 6:25/mi", mileage: 4.5, notes: "5K Prep W8 · 2min rest | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "4x400m @ 6:20/mi", mileage: 2, notes: "5K speed · 2min rest" } },
-                    15: { tue: { name: "2x2 Mile @ 6:55/mi", mileage: 4.5, notes: "5K Prep W9 · race simulation | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 25min Run", mileage: 2.5, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "4x200m @ Race Effort", mileage: 1.5, notes: "Race pace sharpening · full recovery" } },
+                          thu: { name: "Easy 30min Run", mileage: 3, notes: "True easy pace 8:30-9:00/mi only" } },
                     15: { tue: { name: "3x800m @ 6:40/mi", mileage: 2.5, notes: "5K Prep W10 (Taper) · stay fresh | Goal: Apr 30 Sub-21:00" },
-                          thu: { name: "Easy 20min Run", mileage: 2, notes: "True easy pace 8:30-9:00/mi only" },
-                          sat: { name: "4x200m @ 6:15/mi", mileage: 1.5, notes: "Sharpening strides · stay relaxed" } },
-                    // Week 16: Apr 20-26 — Final sharpening week before race
+                          thu: { name: "Easy 20min Run", mileage: 2, notes: "True easy pace 8:30-9:00/mi only" } },
                     16: { tue: { name: "2x1 Mile @ 6:45/mi (race pace)", mileage: 2.5, notes: "Final race pace work · feel the target · 3min rest" },
-                          thu: { name: "Easy 20min + 4x100m strides", mileage: 2, notes: "Last tune-up · legs should feel fresh and snappy" },
-                          sat: { name: "4x100m strides + rest", mileage: 1, notes: "Relaxed strides only · CNS stays fresh for Thursday race" } },
-                    // Week 17: Apr 27-May 3 — RACE WEEK (race is Thursday Apr 30)
+                          thu: { name: "Easy 20min + 4x100m strides", mileage: 2, notes: "Last tune-up · legs should feel fresh and snappy" } },
                     17: { tue: { name: "Easy 15min + 4x100m strides", mileage: 1.5, notes: "2 days before race · feel light and fast · no hard effort" },
-                          thu: { name: "🏁 5K RACE — Sub-21:00 Goal! (Apr 30)", mileage: 3.1, notes: "Mile 1: 7:00 | Mile 2: 6:55 | Mile 3: 6:40 | TARGET: 20:35-20:45 🏆" },
-                          sat: { name: "Easy recovery run 20min", mileage: 2, notes: "Post-race recovery · easy shuffle · celebrate the work" } },
+                          thu: { name: "🏁 5K RACE — Sub-21:00 Goal! (Apr 30)", mileage: 3.1, notes: "Mile 1: 7:00 | Mile 2: 6:55 | Mile 3: 6:40 | TARGET: 20:35-20:45 🏆" } },
                 };
 
                 function generateAllWeeks() {
@@ -367,7 +354,8 @@
                                 sessions: generateSessions(weekNum, mesoIndex, volume, isDeload, weekInMeso, isRecovery)
                             });
 
-                            // Apply 5K overlay for race prep (weeks 7-16, Apr 30 Sub-21 goal)
+                            // Apply 5K overlay for race prep (weeks 7-17, Apr 30 Sub-21 goal)
+                            // Only overrides Tuesday and Thursday — Saturday stays as plyos + sprint mechanics
                             if (fiveKOverlay[weekNum]) {
                                 const ov = fiveKOverlay[weekNum];
                                 const lastWeek = weeks[weeks.length - 1];
@@ -375,20 +363,15 @@
                                     name: "5K Prep Quality Run",
                                     day: "Tuesday",
                                     exercises: [{ name: ov.tue.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.tue.notes, mileage: ov.tue.mileage, isRun: true }],
-                                    notes: "🏃 5K Prep — Apr 30 Race Goal: Sub-21:00"
+                                    notes: "🏃 5K Prep — Apr 30 Race Goal: Sub-21:00 (1 speed session/week)"
                                 };
                                 lastWeek.sessions[3] = {
-                                    name: "Easy Recovery Run",
+                                    name: weekNum === 17 ? "🏁 5K RACE DAY" : "Easy Recovery Run",
                                     day: "Thursday",
                                     exercises: [{ name: ov.thu.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.thu.notes, mileage: ov.thu.mileage, isRun: true }],
-                                    notes: "Easy only — 8:30-9:00/mi, no pushing"
+                                    notes: weekNum === 17 ? "🏁 RACE DAY — Apr 30 5K — Sub-21:00!" : "Easy only — 8:30-9:00/mi, no pushing"
                                 };
-                                lastWeek.sessions[5] = {
-                                    name: weekNum === 16 ? "🏁 5K RACE DAY — Apr 30" : "5K Speed Work",
-                                    day: "Saturday",
-                                    exercises: [{ name: weekNum === 16 ? "🏁 5K RACE — Sub-21:00 Goal!" : ov.sat.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: weekNum === 16 ? "Mile 1: 7:00 | Mile 2: 6:55 | Mile 3: 6:40 | TARGET: 20:35-20:45" : ov.sat.notes, mileage: weekNum === 16 ? 3.1 : ov.sat.mileage, isRun: true }],
-                                    notes: weekNum === 16 ? "🏁 RACE DAY — Apr 30 5K — Sub-21:00!" : "🏃 5K Speed — Apr 30 Race Goal: Sub-21:00"
-                                };
+                                // Saturday NOT overridden — keeps plyos + sprint mechanics for 30yd dash goal
                             }
 
                             weekNum++;
@@ -398,60 +381,240 @@
                 }
 
 
-                // ── Plyometric & Sprint Periodization ────────────────────────────────────────
-                function getPlyoExercises(mesoIndex, isDeload) {
-                    if (mesoIndex === 0) return []; // Recovery — no plyos
-                    if (isDeload) {
-                        return [{name: "Broad Jump", sets: 2, reps: "4", weight: "", percent: "", completed: false, notes: "Sub-max effort · focus on landing", isPlyo: true}];
+                // ── PLYOMETRIC PERIODIZATION v2 ─────────────────────────────────────────────
+                // Primary plyo day = Saturday (before sprints). Monday = activation/PAP only.
+                // Contact tracking built into every plyo exercise.
+                // Helper: compact plyo exercise builder
+                const P = (name, sets, reps, contacts, notes, extra={}) => ({name, sets, reps, weight:"", percent:"", completed:false, notes, isPlyo:true, contacts, ...extra});
+                const PT = (name, sets, reps, contacts, notes) => P(name, sets, reps, contacts, "📊 " + notes, {isPlyoTest:true});
+
+                // ── SATURDAY PLYOS — Week-specific lookup (performed BEFORE sprints) ──────
+                function getSaturdayPlyos(weekNum) {
+                    const map = {
+                        // Meso 0 — Recovery: No plyos
+                        1:[], 2:[], 3:[], 4:[],
+                        // Meso 1 — Anatomical Adaptation
+                        5: [P("Pogo Hops Stationary",3,"10",30,"Baseline · Log GCT on pogos if possible · stiff ankle, spring off"),
+                            P("Squat Jump (no countermovement)",3,"5",30,"Start low, pause 2sec, drive up — no bounce · pure concentric")],
+                        6: [P("Pogo Hops Forward 5m",3,"12",36,"Forward travel · maintain stiff ankle rhythm"),
+                            P("CMJ (hands on hips)",3,"5",30,"RECORD HEIGHT — Baseline #1 · push floor away, explode UP")],
+                        7: [P("Pogo Hops Forward 5m",3,"15",45,"Increasing volume · GCT <280ms target"),
+                            P("CMJ (hands on hips)",3,"5",30,"Max effort · quarter-squat countermovement depth"),
+                            P("Lateral Two-Foot Hops",3,"6/side",36,"Frontal plane intro · soft bilateral landings")],
+                        8: [P("Pogo Hops",2,"10",20,"Deload volume"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #1 — Record height · compare to Week 6 baseline")],
+                        // Meso 2 — Hypertrophy 1
+                        9: [P("Pogo Forward 10m",3,"15",45,"Longer distance · maintain rhythm"),
+                            P("CMJ (hands on hips)",4,"5",40,"Building CMJ volume"),
+                            P("Squat Jump",3,"5",30,"No SSC · isolates concentric force production")],
+                        10:[P("Pogo Forward 10m",4,"15",60,"Volume building"),
+                            P("CMJ (hands on hips)",4,"5",40,"Consistent max effort"),
+                            P("Split Squat Jump",3,"5/side",30,"Alternating legs · soft landing each rep"),
+                            P("Lateral Hops",3,"8/side",48,"Frontal plane SSC development")],
+                        11:[P("Pogo Forward 10m",4,"15",60,"Peak pogo volume this meso"),
+                            P("CMJ (hands on hips)",4,"6",48,"Highest CMJ volume of Phase A"),
+                            P("Tuck Jump",3,"5",30,"Explode up, pull knees, land soft · quality > height"),
+                            P("Double-Leg Hops for Distance",3,"5",30,"Max distance per hop · horizontal SSC")],
+                        12:[P("Pogo Hops",2,"10",20,"Deload"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #2 — Must improve from Wk 8 · Gate: RSI≥1.0, GCT<280ms")],
+                        // Meso 3 — Strength 1
+                        13:[P("Reactive Pogo Forward",4,"15",60,"Target GCT <250ms · fast SSC transition"),
+                            P("CMJ (hands on hips)",4,"6",48,"Continue building"),
+                            P("Tuck Jump",3,"6",36,"Increased reps — maintain landing quality"),
+                            P("Alternating Bounding",3,"5/side",60,"First bounding intro · drive knee forward, push ground BACK")],
+                        14:[P("Reactive Pogo Forward",4,"15",60,"Maintain fast GCT"),
+                            P("CMJ (hands on hips)",5,"5",50,"5 sets — higher CNS demand"),
+                            P("Alternating Bounding",4,"6/side",96,"Loading week · cover distance per bound"),
+                            P("Bilateral Broad Jump",3,"5",30,"High-GRF horizontal SSC · swing arms, push floor BACK")],
+                        15:[P("Reactive Pogo Forward",4,"15",60,"Consistent"),
+                            P("CMJ (hands on hips)",5,"6",60,"Peak CMJ volume this phase"),
+                            P("Alternating Bounding",4,"6/side",96,"Maintain bounding volume"),
+                            P("Tuck Jump",4,"5",40,"Fatigue-resistant landing quality")],
+                        16:[P("Pogo Hops",2,"10",20,"Deload"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #3 — Gate to SL: RSI≥1.3, GCT<250ms, no asymmetry")],
+                        // Meso 4 — Power 1 (SL introduction, first depth drops)
+                        17:[P("CMJ (hands on hips)",4,"5",40,"Maintain bilateral baseline"),
+                            P("SL Vertical Jump",3,"3/side",18,"FIRST SL PLYO — load one leg, explode, stick landing · no wobble"),
+                            P("Alt Bounding Max Distance",4,"6/side",96,"Max distance per bound · horizontal reactive power"),
+                            P("Reactive Pogo Forward",3,"15",45,"Maintain fast SSC baseline")],
+                        18:[P("CMJ (hands on hips)",5,"5",50,"Building"),
+                            P("SL Vertical Jump",3,"4/side",24,"Progressing SL volume"),
+                            P("Depth Drop 20cm",3,"5",30,"FIRST DEPTH DROP — step off, absorb, FREEZE 2sec · no rebound"),
+                            P("Alternating Bounding",4,"6/side",96,"Maintain")],
+                        19:[P("CMJ (hands on hips)",5,"5",50,"Consistent"),
+                            P("SL Vertical Jump",4,"4/side",32,"4 sets SL"),
+                            P("Depth Drop 20cm",4,"5",40,"Increased volume · track GCT on absorption"),
+                            P("SL Broad Jump",3,"3/side",18,"Unilateral horizontal · stick each landing")],
+                        20:[P("Pogo Hops",2,"10",20,"Deload"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #4 — Track SL progress · compare bilateral CMJ trend")],
+                        // Meso 5 — Hypertrophy 2 (reload, maintain SL capacity)
+                        21:[P("CMJ (hands on hips)",4,"5",40,"Reload — consistent effort"),
+                            P("SL Vertical Jump",3,"4/side",24,"Maintain SL from Meso 4"),
+                            P("Reactive Pogo Forward",4,"15",60,"Fast SSC maintenance"),
+                            P("Zigzag Bilateral Hops",3,"10",60,"Multi-directional · change-of-direction reactive")],
+                        22:[P("CMJ (hands on hips)",5,"5",50,"Building"),
+                            P("SL Vertical Jump",4,"4/side",32,"SL volume up"),
+                            P("Alternating Bounding",4,"6/side",96,"Horizontal reactive · sprint transfer"),
+                            P("Lateral Hops Max Amplitude",3,"8/side",48,"Max push-off · frontal plane power")],
+                        23:[P("CMJ (hands on hips)",5,"6",60,"Peak CMJ volume this meso"),
+                            P("SL Vertical Jump",4,"5/side",40,"Peak SL volume"),
+                            P("Alternating Bounding",4,"8/side",128,"Overreach bounding volume"),
+                            P("SL Broad Jump",3,"3/side",18,"Unilateral horizontal maintenance")],
+                        24:[P("Pogo Hops",2,"10",20,"Deload"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #5 — Gate to Depth Jumps: RSI≥1.3, SL LSI≥85%, GCT<250ms")],
+                        // Meso 6 — Strength 2 (DEPTH JUMPS introduced, GCT-guided)
+                        25:[P("Depth Jump 20cm (GCT-guided)",4,"4",32,"FIRST DEPTH JUMP — step off, ATTACK ground, rebound MAX · track GCT"),
+                            P("CMJ (hands on hips)",4,"5",40,"Maintain bilateral expression"),
+                            P("SL Vertical Jump",4,"4/side",32,"Unilateral maintenance"),
+                            P("SL Lateral Hop",3,"4/side",24,"Frontal plane reactive · medial knee control")],
+                        26:[P("Depth Jump (GCT-guided)",4,"4",32,"GCT<220ms→raise 10cm | 220-250ms→hold | >250ms→lower 10cm"),
+                            P("CMJ (hands on hips)",5,"5",50,"Building"),
+                            P("SL Vertical Jump",4,"5/side",40,"SL progressing"),
+                            P("Alt Bounds Sprint Transfer 10m",3,"~16 contacts",48,"Bounding into sprint acceleration · 10m transition")],
+                        27:[P("Depth Jump (GCT-guided)",5,"4",40,"Highest DJ volume this meso · never exceed 50cm box"),
+                            P("CMJ (hands on hips)",5,"5",50,"Consistent"),
+                            P("SL Vertical Jump",5,"4/side",40,"Peak SL volume"),
+                            P("SL Lateral Hop",4,"5/side",40,"Multi-planar reactive")],
+                        28:[P("CMJ",2,"3",12,"Light primer"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #6 — Depth jump GCT baseline established · track CMJ trend")],
+                        // Meso 7 — Power 2 (MONEY MESO — peak depth jump development)
+                        29:[P("Depth Jump (GCT-guided, progressed)",4,"4",32,"Expect 30-40cm if progression clean · max reactive effort"),
+                            P("CMJ Max Effort",5,"4",40,"Every rep = max intent · 2min rest between sets"),
+                            P("SL Vertical Jump",4,"4/side",32,"Maintain unilateral")],
+                        30:[P("Depth Jump (progressed)",5,"4",40,"Loading week · highest DJ volume"),
+                            P("CMJ (hands on hips)",5,"5",50,"Peak bilateral volume"),
+                            P("SL Vertical Jump",4,"5/side",40,"SL loading")],
+                        31:[P("Depth Jump (progressed)",5,"4",40,"Overreach · 72h recovery before Monday mandatory"),
+                            P("CMJ (hands on hips)",5,"5",50,"Maintain through overreach"),
+                            P("Alt Bounds Sprint Transfer 15m",4,"~20 contacts",80,"Horizontal reactive → sprint transition · 15m distance")],
+                        32:[P("CMJ",2,"3",12,"Light"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #7 — Expect BEST CMJ to date · money meso payoff")],
+                        // Meso 8 — Mile Specific (maintenance hold)
+                        33:[P("Depth Jump (hold Meso 7 height)",3,"3",18,"Maintenance only · hold reactive gains"),
+                            P("CMJ (hands on hips)",3,"4",24,"Reduced volume · maintain neural pattern")],
+                        34:[P("Depth Jump (hold height)",3,"4",24,"Slight volume increase"),
+                            P("CMJ (hands on hips)",4,"4",32,"Moderate")],
+                        35:[P("Depth Jump (hold height)",3,"4",24,"Consistent maintenance"),
+                            P("CMJ (hands on hips)",4,"4",32,"Consistent")],
+                        36:[P("CMJ",2,"3",12,"Light"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #8 — Confirm VJ hasn't regressed during mile focus")],
+                        // Meso 9 — Strength-Power Integration (2nd peak conversion)
+                        37:[P("Depth Jump (push height via GCT)",4,"4",32,"May reach 40-50cm if GCT allows · max 60cm cap"),
+                            P("CMJ Max Effort",5,"4",40,"Every rep = max intent"),
+                            P("SL Vertical Jump",4,"4/side",32,"Maintain unilateral expression")],
+                        38:[P("Depth Jump (push height)",5,"4",40,"Loading · highest-quality reps of the year"),
+                            P("CMJ (hands on hips)",5,"5",50,"Full bilateral volume"),
+                            P("SL Vertical Jump",4,"5/side",40,"SL loading")],
+                        39:[P("Depth Jump (push height)",5,"4",40,"Overreach · multi-planar reactive work"),
+                            P("CMJ (hands on hips)",5,"5",50,"Maintain through overreach"),
+                            P("SL Lateral Hop",4,"5/side",40,"Frontal plane reactive peak")],
+                        40:[P("CMJ",2,"3",12,"Light"),
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #9 — Second-best CMJ expected · confirms reconversion")],
+                        // Meso 10 — Peaking 1 (express, highest quality)
+                        41:[P("Depth Jump (peak height)",4,"3",24,"Peak individualized height · max intent every rep"),
+                            P("CMJ Max Effort",4,"3",24,"Approaching 18\" target · full recovery between sets"),
+                            P("SL Vertical Jump",3,"3/side",18,"Reduced volume · maintain")],
+                        42:[P("Depth Jump (peak height)",4,"4",32,"Slight volume bump"),
+                            P("CMJ (hands on hips)",4,"4",32,"Loading"),
+                            P("SL Vertical Jump",3,"3/side",18,"Maintain")],
+                        43:[P("Depth Jump (peak height)",4,"3",24,"Step back volume · quality only"),
+                            P("CMJ (hands on hips)",4,"3",24,"Reduced — stay sharp")],
+                        44:[PT("CMJ (hands on hips)",3,"3",18,"TEST #10 — Should approach 18\" target · peak supercompensation")],
+                        // Meso 11 — Speed/Power Peaking (taper begins)
+                        45:[P("Depth Jump (peak height)",3,"3",18,"Taper volume · max intent"),
+                            P("CMJ (hands on hips)",4,"3",24,"Sharp, fast, effortless")],
+                        46:[P("Depth Jump (peak height)",3,"3",18,"Maintain"),
+                            P("CMJ (hands on hips)",4,"3",24,"Consistent expression")],
+                        47:[P("Depth Jump",2,"3",12,"Reduced · approaching final taper"),
+                            P("CMJ (hands on hips)",3,"3",18,"Minimal but max intent")],
+                        48:[PT("CMJ (hands on hips)",3,"3",18,"TEST #11 — Final taper benchmark · within 10% of 18\"?")],
+                        // Meso 12 — Mile Peaking (VJ maintenance, mile priority)
+                        49:[P("CMJ (hands on hips)",3,"3",18,"Maintenance only · no depth jumps (running freshness)")],
+                        50:[P("CMJ (hands on hips)",3,"3",18,"Hold neural pattern")],
+                        51:[P("CMJ (hands on hips)",2,"3",12,"Minimal")],
+                        52:[PT("CMJ (hands on hips)",3,"3",18,"TEST #12 — Confirm no VJ regression during mile taper")],
+                        // Meso 13 — Testing & Realization
+                        53:[P("CMJ (hands on hips)",3,"3",18,"Final sharpening · should feel explosive"),
+                            P("Depth Jump",2,"3",12,"Last depth jumps of the program")],
+                        54:[P("CMJ (hands on hips)",3,"3",18,"Light primer only")],
+                        55:[P("CMJ (hands on hips)",2,"3",12,"Minimal · rest for test week")],
+                        56:[PT("🏆 VERTICAL JUMP TEST (hands on hips)",5,"1",10,"Goal: 18 inches · BEST OF 5 · 3-5min rest between jumps")]
+                    };
+                    return map[weekNum] || [];
+                }
+
+                // ── MONDAY ACTIVATION / PAP — returns {preLift:[], postLift:[]} ──────────
+                function getMondayActivation(weekNum, mesoIndex, isDeload) {
+                    // Meso 0: No plyos
+                    if (mesoIndex === 0) return {preLift:[], postLift:[]};
+                    // Meso 12 (weeks 49-52): No Monday plyos
+                    if (mesoIndex === 12) return {preLift:[], postLift:[]};
+                    // Meso 13: Weeks 55-56 = none. Weeks 53-54 = post-squat only
+                    if (mesoIndex === 13) {
+                        if (weekNum >= 55) return {preLift:[], postLift:[]};
+                        return {preLift:[], postLift:[
+                            P("PAP: CMJ (after top squat set)",2,"3",12,"Post-squat potentiation · light sharpening · 3-4min rest after squat")
+                        ]};
                     }
-                    const phases = [
-                        [], // 0 Recovery (handled above)
-                        // 1 Anatomical Adaptation — intro plyos, bilateral, low intensity
-                        [{name: "Pogo Hops", sets: 2, reps: "15", weight: "", percent: "", completed: false, notes: "Stiff ankle · ground contact <150ms", isPlyo: true},
-                         {name: "Box Step-Up Jump", sets: 2, reps: "6/leg", weight: "", percent: "", completed: false, notes: "12in box · soft landing", isPlyo: true}],
-                        // 2 Hypertrophy 1 — accumulation plyos, building volume
-                        [{name: "Squat Jump", sets: 3, reps: "6", weight: "", percent: "", completed: false, notes: "Max height · hands on hips", isPlyo: true},
-                         {name: "Broad Jump", sets: 3, reps: "5", weight: "", percent: "", completed: false, notes: "Max distance · stick landing", isPlyo: true},
-                         {name: "Lateral Bound", sets: 2, reps: "5/side", weight: "", percent: "", completed: false, notes: "Explosive push · stick each rep", isPlyo: true}],
-                        // 3 Strength 1 — strength-speed plyos, depth drops
-                        [{name: "Depth Drop (24in)", sets: 3, reps: "5", weight: "", percent: "", completed: false, notes: "Absorb force · reinforce triple extension", isPlyo: true},
-                         {name: "Hurdle Hop (30in)", sets: 3, reps: "5", weight: "", percent: "", completed: false, notes: "Minimize ground contact · stiff ankle", isPlyo: true},
-                         {name: "Single-Leg Box Jump", sets: 3, reps: "4/leg", weight: "", percent: "", completed: false, notes: "18in box · VJ specific", isPlyo: true}],
-                        // 4 Power 1 — intensive plyos, reactive/shock method
-                        [{name: "Depth Jump (30in)", sets: 4, reps: "5", weight: "", percent: "", completed: false, notes: "REACTIVE — jump immediately on landing · max RFD", isPlyo: true},
-                         {name: "Single-Leg Bound x3", sets: 3, reps: "4/leg", weight: "", percent: "", completed: false, notes: "Triple bound — distance + height", isPlyo: true},
-                         {name: "Drop & Stick (36in)", sets: 3, reps: "4", weight: "", percent: "", completed: false, notes: "Eccentric loading prep", isPlyo: true}],
-                        // 5 Hypertrophy 2 — reload, reactive emphasis returns
-                        [{name: "Reactive Box Jump (24in)", sets: 3, reps: "5", weight: "", percent: "", completed: false, notes: "Step off → immediate jump · sub-0.2s contact", isPlyo: true},
-                         {name: "Lateral Bound to Box", sets: 3, reps: "4/side", weight: "", percent: "", completed: false, notes: "Lateral power → vertical conversion", isPlyo: true},
-                         {name: "Ankle Pop", sets: 2, reps: "15", weight: "", percent: "", completed: false, notes: "Reactive stiffness · fast ground contact", isPlyo: true}],
-                        // 6 Strength 2 — heavy loaded plyos + contrast
-                        [{name: "Depth Jump (36in)", sets: 4, reps: "5", weight: "", percent: "", completed: false, notes: "Highest box to date · max reactive effort", isPlyo: true},
-                         {name: "Weighted Jump Squat (20% BW)", sets: 3, reps: "4", weight: "35", percent: "", completed: false, notes: "Load = ~20% BW · bar on back", isPlyo: true},
-                         {name: "Single-Leg Depth Drop", sets: 3, reps: "4/leg", weight: "", percent: "", completed: false, notes: "Unilateral eccentric load", isPlyo: true}],
-                        // 7 Power 2 — peak reactive plyos, max effort
-                        [{name: "Depth Jump (36in) — MAX EFFORT", sets: 5, reps: "4", weight: "", percent: "", completed: false, notes: "Record every jump — identify best height", isPlyo: true},
-                         {name: "Triple Broad Jump", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "3 consecutive bounds · max distance", isPlyo: true},
-                         {name: "Reactive Single-Leg Hop (3x)", sets: 3, reps: "3/leg", weight: "", percent: "", completed: false, notes: "Continuous hops · fast reactive", isPlyo: true}],
-                        // 8 Mile Specific — maintain VJ, reduce volume
-                        [{name: "Squat Jump", sets: 2, reps: "5", weight: "", percent: "", completed: false, notes: "Maintenance — max effort, low volume", isPlyo: true},
-                         {name: "Depth Jump (30in)", sets: 2, reps: "4", weight: "", percent: "", completed: false, notes: "Maintain reactive capacity", isPlyo: true}],
-                        // 9 Strength-Power Integration — complex pairs
-                        [{name: "Complex: Heavy Squat → Depth Jump", sets: 4, reps: "3+4", weight: "", percent: "", completed: false, notes: "Post-activation potentiation: squat @ 85%+ then immediate depth jump", isPlyo: true},
-                         {name: "Kettlebell Swing → Broad Jump", sets: 3, reps: "5+3", weight: "70", percent: "", completed: false, notes: "Hip hinge power transfer · PAP complex", isPlyo: true}],
-                        // 10 Peaking 1 — peak VJ-specific
-                        [{name: "VJ Test Protocol (hands on hips)", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "TRACK HEIGHT — this is your benchmark set", isPlyo: true},
-                         {name: "Depth Jump (36in)", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "Peak reactive — full recovery between reps", isPlyo: true},
-                         {name: "Single-Leg Reactive Hop", sets: 2, reps: "3/leg", weight: "", percent: "", completed: false, notes: "Maintain unilateral power", isPlyo: true}],
-                        // 11 Speed/Power Peaking — near-competition VJ
-                        [{name: "VJ Warm-Up Sequence", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "Pogo → squat jump → max VJ · prime CNS", isPlyo: true},
-                         {name: "Depth Jump (30in)", sets: 2, reps: "3", weight: "", percent: "", completed: false, notes: "Fresh CNS only · don't grind", isPlyo: true}],
-                        // 12 Mile Peaking — minimal, stay fresh
-                        [{name: "Squat Jump", sets: 2, reps: "3", weight: "", percent: "", completed: false, notes: "CNS primer only · stop at any fatigue", isPlyo: true}],
-                        // 13 Testing — test day
-                        [{name: "🏆 VERTICAL JUMP TEST (hands on hips)", sets: 1, reps: "3 max efforts", weight: "", percent: "", completed: false, notes: "Goal: 18 inches · rest 3min between jumps", isPlyo: true}],
-                    ];
-                    return phases[mesoIndex] || [];
+                    // Deload weeks: reduced activation
+                    if (isDeload) {
+                        if (mesoIndex <= 3 || mesoIndex === 5) {
+                            return {preLift:[P("CMJ (hands on hips)",2,"3",12,"Deload activation · sub-max")], postLift:[]};
+                        }
+                        return {preLift:[], postLift:[P("PAP: CMJ (after top squat set)",2,"3",12,"Deload PAP · light")]};
+                    }
+                    // Meso 1-3: Pre-lift activation (Pogos + CMJ before squats)
+                    if (mesoIndex === 1 || mesoIndex === 2) {
+                        return {preLift:[
+                            P("Pogo Hops Stationary",2,"10",20,"Pre-lift CNS activation · stiff ankle, spring off"),
+                            P("CMJ (hands on hips)",2,"3",12,"Prime bilateral movement pattern before squats")
+                        ], postLift:[]};
+                    }
+                    if (mesoIndex === 3) {
+                        return {preLift:[
+                            P("Reactive Pogo Hops",2,"12",24,"Pre-lift activation · target GCT <250ms"),
+                            P("CMJ (hands on hips)",2,"3",12,"Prime CNS for heavy squat sets")
+                        ], postLift:[]};
+                    }
+                    // Meso 4: CMJ pre-squat + PAP CMJ post-squat
+                    if (mesoIndex === 4) {
+                        return {
+                            preLift:[P("CMJ (activation)",2,"3",12,"Pre-squat primer · moderate effort")],
+                            postLift:[P("PAP: CMJ (after top squat set)",2,"3",12,"Compare height to pre-squat CMJ · if higher → potentiation confirmed · 3-4min rest")]
+                        };
+                    }
+                    // Meso 5: Pre-lift activation only (lifting volume too high for PAP)
+                    if (mesoIndex === 5) {
+                        return {preLift:[
+                            P("Reactive Pogo Hops",2,"12",24,"Pre-lift activation"),
+                            P("CMJ (hands on hips)",2,"4",16,"Increased reps · maintain pattern")
+                        ], postLift:[]};
+                    }
+                    // Meso 6-7: PAP — squat top set → CMJ 3×3
+                    if (mesoIndex === 6 || mesoIndex === 7) {
+                        return {preLift:[], postLift:[
+                            P("PAP: CMJ Max Effort (after squat top set)",3,"3",18,"3-4min rest after squat · max effort · record height")
+                        ]};
+                    }
+                    // Meso 8: Reduced PAP — CMJ 2×3 post-squat
+                    if (mesoIndex === 8) {
+                        return {preLift:[], postLift:[
+                            P("PAP: CMJ (after top squat set)",2,"3",12,"Maintenance · mile phase priority")
+                        ]};
+                    }
+                    // Meso 9: Advanced PAP — squat top set → DEPTH JUMP 3×3
+                    if (mesoIndex === 9) {
+                        return {preLift:[], postLift:[
+                            P("PAP: Depth Jump (after squat top set)",3,"3",18,"Advanced PAP · squat @ 87%+ → depth jump at GCT-guided height · 3-4min rest")
+                        ]};
+                    }
+                    // Meso 10-11: CMJ 2×3 after top squat single
+                    if (mesoIndex === 10 || mesoIndex === 11) {
+                        return {preLift:[], postLift:[
+                            P("PAP: CMJ (after top squat single)",2,"3",12,"Peak phase · maintain neural pattern")
+                        ]};
+                    }
+                    return {preLift:[], postLift:[]};
                 }
 
                 function getSprintExercises(mesoIndex, isDeload, weekInBlock) {
@@ -526,77 +689,121 @@
 
                 function generateSessions(weekNum, mesoIndex, volume, isDeload, weekInBlock, isRecovery) {
                     const prog = 1 + (weekNum * 0.003);
-                    let mainReps, mainSets, auxReps, auxSets, squatPct, benchPct, trapPct, cleanPct;
+                    let mainReps, mainSets, auxReps, auxSets;
+                    // ── DIFFERENTIATED % CURVES ──────────────────────────────────
+                    // Squat: standard strength curve
+                    // Bench: 3-5% lower in str/pow phases — needs more submaximal volume to progress
+                    // Trap Bar DL: 2-5% higher — mechanical advantage allows heavier relative loads
+                    // Power Clean: technique-capped at 87% — velocity > load always
+                    let squatPct, benchPct, trapPct, cleanPct;
+                    let benchSets, benchReps; // bench may differ from mainSets/mainReps
 
                     if (mesoIndex === 0) {
                         mainReps = isRecovery ? "15-20" : "12-15"; mainSets = isRecovery ? 2 : 3;
                         auxReps = "12"; auxSets = 2;
-                        squatPct = 0.45 + weekInBlock * 0.03; benchPct = squatPct; trapPct = squatPct; cleanPct = 0.50;
+                        squatPct = 0.45 + weekInBlock * 0.03;
+                        benchPct = 0.45 + weekInBlock * 0.03;
+                        trapPct  = 0.45 + weekInBlock * 0.03;
+                        cleanPct = 0.50;
+                        benchSets = mainSets; benchReps = mainReps;
                     } else if (mesoIndex === 1) {
                         mainReps = isDeload ? "12" : "12-15"; mainSets = isDeload ? 2 : 3;
                         auxReps = "12-15"; auxSets = 3;
                         squatPct = isDeload ? 0.50 : 0.50 + weekInBlock * 0.03;
-                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.55;
+                        benchPct = isDeload ? 0.48 : 0.48 + weekInBlock * 0.03;
+                        trapPct  = isDeload ? 0.52 : 0.52 + weekInBlock * 0.03;
+                        cleanPct = 0.55;
+                        benchSets = mainSets; benchReps = mainReps;
                     } else if (mesoIndex === 2 || mesoIndex === 5) {
                         mainReps = isDeload ? "10" : "8-10"; mainSets = isDeload ? 3 : 4;
                         auxReps = "10-12"; auxSets = 3;
-                        const base = mesoIndex === 5 ? 0.70 : 0.65;
-                        squatPct = isDeload ? base : base + weekInBlock * 0.025;
-                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.65;
+                        const sqBase = mesoIndex === 5 ? 0.70 : 0.65;
+                        squatPct = isDeload ? sqBase : sqBase + weekInBlock * 0.025;
+                        const bpBase = mesoIndex === 5 ? 0.67 : 0.62;
+                        benchPct = isDeload ? bpBase : bpBase + weekInBlock * 0.025;
+                        const trBase = mesoIndex === 5 ? 0.72 : 0.67;
+                        trapPct = isDeload ? trBase : trBase + weekInBlock * 0.025;
+                        cleanPct = mesoIndex === 5 ? 0.62 : 0.60;
+                        benchSets = isDeload ? 3 : 4; benchReps = isDeload ? "10" : "10-12";
                     } else if (mesoIndex === 3 || mesoIndex === 6) {
                         mainReps = isDeload ? "5" : weekInBlock <= 1 ? "6" : weekInBlock === 2 ? "5" : "3-4";
                         mainSets = isDeload ? 3 : 5; auxReps = "6-8"; auxSets = 4;
-                        const base = mesoIndex === 6 ? 0.80 : 0.75;
-                        squatPct = isDeload ? base : base + weekInBlock * 0.03;
-                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.75;
+                        const sqBase = mesoIndex === 6 ? 0.80 : 0.75;
+                        squatPct = isDeload ? sqBase : sqBase + weekInBlock * 0.03;
+                        const bpBase = mesoIndex === 6 ? 0.77 : 0.72;
+                        benchPct = isDeload ? bpBase : bpBase + weekInBlock * 0.025;
+                        const trBase = mesoIndex === 6 ? 0.82 : 0.77;
+                        trapPct = isDeload ? trBase : trBase + weekInBlock * 0.03;
+                        cleanPct = mesoIndex === 6 ? 0.70 : 0.65;
+                        benchSets = isDeload ? 3 : 5;
+                        benchReps = isDeload ? "6" : weekInBlock <= 1 ? "6" : weekInBlock === 2 ? "5" : "4-5";
                     } else if (mesoIndex === 4 || mesoIndex === 7) {
                         mainReps = isDeload ? "3" : "2-3"; mainSets = isDeload ? 3 : 5;
                         auxReps = "5"; auxSets = 3;
-                        const base = mesoIndex === 7 ? 0.87 : 0.85;
-                        squatPct = isDeload ? base : base + weekInBlock * 0.015;
-                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.82;
+                        const sqBase = mesoIndex === 7 ? 0.87 : 0.85;
+                        squatPct = isDeload ? sqBase : sqBase + weekInBlock * 0.015;
+                        const bpBase = mesoIndex === 7 ? 0.84 : 0.82;
+                        benchPct = isDeload ? bpBase : bpBase + weekInBlock * 0.015;
+                        const trBase = mesoIndex === 7 ? 0.89 : 0.87;
+                        trapPct = isDeload ? trBase : trBase + weekInBlock * 0.015;
+                        cleanPct = mesoIndex === 7 ? 0.78 : 0.75;
+                        benchSets = isDeload ? 3 : 5;
+                        benchReps = isDeload ? "3" : "3-4";
                     } else if (mesoIndex >= 10) {
                         mainReps = isDeload ? "2" : "1-2"; mainSets = isDeload ? 2 : 3;
                         auxReps = "3-5"; auxSets = 2;
                         squatPct = weekNum >= 55 ? 1.0 : 0.92;
-                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.90;
+                        benchPct = weekNum >= 55 ? 1.0 : 0.90;
+                        trapPct  = weekNum >= 55 ? 1.0 : 0.93;
+                        cleanPct = weekNum >= 55 ? 0.87 : 0.82;
+                        benchSets = mainSets; benchReps = mainReps;
                     } else {
-                        mainReps = isDeload ? "3" : "2-3"; mainSets = isDeload ? 3 : 4;
-                        auxReps = "4-6"; auxSets = 3;
-                        squatPct = isDeload ? 0.80 : 0.85 + weekInBlock * 0.02;
-                        benchPct = squatPct; trapPct = squatPct; cleanPct = 0.80;
+                        // mesoIndex 8 (Mile Specific) & 9 (Strength-Power Integration)
+                        const isMileMaint = mesoIndex === 8;
+                        mainReps = isDeload ? "3" : isMileMaint ? "3-5" : "2-3";
+                        mainSets = isDeload ? 3 : isMileMaint ? 3 : 4;
+                        auxReps = isMileMaint ? "6-8" : "4-6"; auxSets = 3;
+                        squatPct = isDeload ? 0.78 : isMileMaint ? (0.72 + weekInBlock * 0.02) : (0.85 + weekInBlock * 0.02);
+                        benchPct = isDeload ? 0.75 : isMileMaint ? (0.70 + weekInBlock * 0.02) : (0.82 + weekInBlock * 0.02);
+                        trapPct  = isDeload ? 0.80 : isMileMaint ? (0.75 + weekInBlock * 0.02) : (0.87 + weekInBlock * 0.02);
+                        cleanPct = isMileMaint ? 0.68 : 0.75;
+                        benchSets = mainSets;
+                        benchReps = isDeload ? "4" : isMileMaint ? "5-6" : "3-4";
                     }
+
+                    // Cap power clean at 87% — technique ceiling (Chris Pedulla / Tommy Moffitt principle)
+                    cleanPct = Math.min(cleanPct, 0.87);
 
                     const squatWeight = Math.round((ONE_RM['Squat'] * squatPct * prog) / 5) * 5;
                     const benchWeight = Math.round((ONE_RM['Bench Press'] * benchPct * prog) / 5) * 5;
                     const trapWeight = Math.round((ONE_RM['Trap Bar Deadlift'] * trapPct * prog) / 5) * 5;
                     const cleanWeight = Math.round((ONE_RM['Power Clean'] * cleanPct * prog) / 5) * 5;
 
+                    // Power clean: technique emphasis — more sets of fewer reps, separate from main sets
+                    const cleanSets = mesoIndex <= 1 ? 3 : mesoIndex >= 10 ? 3 : mesoIndex >= 7 ? 5 : 4;
+                    const cleanReps = mesoIndex <= 2 ? "3" : mesoIndex >= 7 ? "2" : "2-3";
+
                     // ── Accessory weights — periodized to match main lift phase ─────────────
-                    // RFESS: 30-50% of squat 1RM (unilateral, dumbbell in each hand = total load)
-                    // Phase scales from accumulation (lighter/more reps) to intensification (heavier/fewer)
-                    const rfessPct = mesoIndex === 0 ? 0.28 :
-                                     mesoIndex === 1 ? 0.32 :
+
+                    // RFESS: 28-52% of squat 1RM (unilateral, DB in each hand)
+                    const rfessPct = mesoIndex === 0 ? 0.28 : mesoIndex === 1 ? 0.32 :
                                      mesoIndex === 2 ? 0.38 : mesoIndex === 5 ? 0.42 :
                                      mesoIndex === 3 ? 0.45 : mesoIndex === 6 ? 0.50 :
                                      mesoIndex === 4 ? 0.48 : mesoIndex === 7 ? 0.52 :
                                      mesoIndex >= 10 ? 0.40 : 0.46;
                     const rfessWeight = Math.round((ONE_RM['Squat'] * rfessPct * prog) / 5) * 5;
 
-                    // Pallof Press: anti-rotation core — increases with phase, sets match auxSets
-                    const pallofWeight = mesoIndex === 0 ? 20 :
-                                         mesoIndex === 1 ? 25 :
+                    // Pallof Press: anti-rotation core
+                    const pallofWeight = mesoIndex === 0 ? 20 : mesoIndex === 1 ? 25 :
                                          mesoIndex === 2 ? 30 : mesoIndex === 5 ? 35 :
                                          mesoIndex === 3 ? 40 : mesoIndex === 6 ? 45 :
                                          mesoIndex === 4 ? 45 : mesoIndex === 7 ? 50 :
                                          mesoIndex >= 10 ? 40 : 45;
-                    const pallofReps = mesoIndex <= 1 ? "12/side" :
-                                        mesoIndex <= 3 ? "10/side" :
+                    const pallofReps = mesoIndex <= 1 ? "12/side" : mesoIndex <= 3 ? "10/side" :
                                         mesoIndex <= 5 ? "8/side" : "6/side";
                     const pallofSets = mesoIndex === 0 ? 2 : mesoIndex <= 2 ? 3 : mesoIndex <= 5 ? 3 : 2;
 
-                    // Pull-ups: BW in early phases, weighted in strength/power phases
-                    // Weight = added load (lbs). Uses auxSets/auxReps that already match phase.
+                    // Pull-ups: BW → weighted by phase
                     const pullupAdded = mesoIndex <= 1 ? 0 :
                                         mesoIndex === 2 ? 10 : mesoIndex === 5 ? 15 :
                                         mesoIndex === 3 ? 25 : mesoIndex === 6 ? 35 :
@@ -607,55 +814,72 @@
                                         mesoIndex <= 4 ? "Weighted — add load via belt or vest · control descent" :
                                         "Heavy weighted — strength-to-bodyweight ratio goal";
 
-                    // DB Bench: ~40-55% of bench 1RM per dumbbell, scales with phase
-                    const dbBenchPct = mesoIndex === 0 ? 0.38 :
-                                        mesoIndex === 1 ? 0.43 :
-                                        mesoIndex === 2 ? 0.48 : mesoIndex === 5 ? 0.52 :
-                                        mesoIndex === 3 ? 0.54 : mesoIndex === 6 ? 0.58 :
-                                        mesoIndex === 4 ? 0.56 : mesoIndex === 7 ? 0.60 :
-                                        mesoIndex >= 10 ? 0.50 : 0.55;
-                    const dbBenchWeight = Math.round((ONE_RM['Bench Press'] * dbBenchPct * prog) / 2) * 2; // nearest 2lb (DB)
-                    const dbBenchNotes = mesoIndex <= 1 ? "Stability focus — slow eccentric 3 sec" :
-                                          mesoIndex <= 3 ? "Controlled tempo — 2 sec eccentric" :
-                                          mesoIndex <= 5 ? "Moderate tempo — build to top set" :
-                                          "Explosive concentric — match main lift intent";
+                    // ── HAMSTRING WORK (NEW) — Nordic Curl on Monday, RDL on Friday ─────────
+                    // Nordic Curl: eccentric hamstring emphasis — Derek Hansen sprint injury prevention
+                    const nordicSets = mesoIndex === 0 ? 2 : mesoIndex <= 2 ? 3 : mesoIndex <= 5 ? 3 :
+                                        mesoIndex <= 7 ? 3 : mesoIndex >= 10 ? 2 : 2;
+                    const nordicReps = mesoIndex === 0 ? "5 negatives" : mesoIndex <= 2 ? "6-8" :
+                                        mesoIndex <= 4 ? "5-6" : mesoIndex <= 7 ? "4-5" :
+                                        mesoIndex >= 10 ? "4" : "5";
+                    const nordicNotes = mesoIndex <= 1 ? "Eccentric only — slow 5sec lowering, push back up" :
+                                         mesoIndex <= 3 ? "Control the eccentric — add concentric effort at bottom" :
+                                         mesoIndex <= 5 ? "Full ROM if possible · weighted vest for advanced" :
+                                         "Maintenance — keep hamstring eccentric capacity high for sprints";
 
-                    // Barbell Rows: ~55-75% of bench 1RM, scales with phase
-                    // Rows are horizontal pull antagonist to bench — should progress in lockstep
-                    const rowPct = mesoIndex === 0 ? 0.45 :
-                                    mesoIndex === 1 ? 0.52 :
-                                    mesoIndex === 2 ? 0.58 : mesoIndex === 5 ? 0.63 :
-                                    mesoIndex === 3 ? 0.67 : mesoIndex === 6 ? 0.73 :
-                                    mesoIndex === 4 ? 0.70 : mesoIndex === 7 ? 0.76 :
-                                    mesoIndex >= 10 ? 0.65 : 0.70;
-                    const rowWeight = Math.round((ONE_RM['Bench Press'] * rowPct * prog) / 5) * 5;
-                    const rowNotes = mesoIndex <= 1 ? "Strict form — full retraction at top" :
-                                      mesoIndex <= 3 ? "Controlled — 2 sec eccentric, pull to lower chest" :
-                                      mesoIndex <= 5 ? "Heavier load — maintain flat back, no body English" :
-                                      "Heavy rows — minimal momentum, max retraction";
+                    // RDL: hip hinge pattern on Friday — 45-65% of trap bar 1RM
+                    const rdlPct = mesoIndex === 0 ? 0.30 : mesoIndex === 1 ? 0.35 :
+                                    mesoIndex === 2 ? 0.42 : mesoIndex === 5 ? 0.48 :
+                                    mesoIndex === 3 ? 0.50 : mesoIndex === 6 ? 0.55 :
+                                    mesoIndex === 4 ? 0.52 : mesoIndex === 7 ? 0.58 :
+                                    mesoIndex >= 10 ? 0.45 : 0.50;
+                    const rdlWeight = Math.round((ONE_RM['Trap Bar Deadlift'] * rdlPct * prog) / 5) * 5;
+                    const rdlSets = mesoIndex <= 1 ? 3 : mesoIndex >= 10 ? 2 : 3;
+                    const rdlReps = mesoIndex <= 1 ? "10-12" : mesoIndex <= 3 ? "8-10" :
+                                     mesoIndex <= 5 ? "8" : mesoIndex <= 7 ? "6" : "6-8";
+                    const rdlNotes = mesoIndex <= 1 ? "Hip hinge pattern — soft knees, flat back, feel hamstring stretch" :
+                                      mesoIndex <= 3 ? "Controlled 3sec eccentric — load the hamstrings, not the back" :
+                                      mesoIndex <= 5 ? "Heavy RDL — brace hard, hip crease drives back" :
+                                      "Posterior chain strength — complement to trap bar DL";
 
-                    // DB Rows: ~35-50% of bench 1RM per arm, slightly behind barbell rows
-                    const dbRowPct = mesoIndex === 0 ? 0.35 :
-                                      mesoIndex === 1 ? 0.40 :
+                    // ── SHOULDER HEALTH (NEW) — DB Shoulder Press + Face Pulls on Wednesday ──
+                    // DB Shoulder Press: ~35-50% of bench 1RM per arm
+                    const ohpPct = mesoIndex === 0 ? 0.30 : mesoIndex === 1 ? 0.33 :
+                                    mesoIndex === 2 ? 0.38 : mesoIndex === 5 ? 0.42 :
+                                    mesoIndex === 3 ? 0.44 : mesoIndex === 6 ? 0.48 :
+                                    mesoIndex === 4 ? 0.46 : mesoIndex === 7 ? 0.50 :
+                                    mesoIndex >= 10 ? 0.40 : 0.44;
+                    const ohpWeight = Math.round((ONE_RM['Bench Press'] * ohpPct * prog) / 2) * 2;
+                    const ohpSets = mesoIndex <= 1 ? 3 : mesoIndex >= 10 ? 2 : 3;
+                    const ohpReps = mesoIndex <= 1 ? "10-12" : mesoIndex <= 3 ? "8-10" :
+                                     mesoIndex <= 5 ? "8" : mesoIndex <= 7 ? "6" : "6-8";
+                    const ohpNotes = mesoIndex <= 1 ? "Overhead pressing pattern — strict form, no leg drive" :
+                                      mesoIndex <= 3 ? "Moderate load — press to lockout, control the negative" :
+                                      mesoIndex <= 5 ? "Heavier DB press — maintain neutral spine" :
+                                      "Heavy OH press — shoulder strength for clean rack and bench lockout";
+
+                    // Face Pulls: constant shoulder health exercise — 3×15 throughout
+                    const facePullSets = 3;
+                    const facePullReps = mesoIndex <= 2 ? "15" : mesoIndex <= 5 ? "12-15" : "12";
+                    const facePullWeight = mesoIndex === 0 ? 15 : mesoIndex <= 2 ? 20 :
+                                            mesoIndex <= 5 ? 25 : mesoIndex <= 7 ? 30 :
+                                            mesoIndex >= 10 ? 25 : 25;
+
+                    // DB Rows: horizontal pull for Friday
+                    const dbRowPct = mesoIndex === 0 ? 0.35 : mesoIndex === 1 ? 0.40 :
                                       mesoIndex === 2 ? 0.45 : mesoIndex === 5 ? 0.50 :
                                       mesoIndex === 3 ? 0.53 : mesoIndex === 6 ? 0.58 :
                                       mesoIndex === 4 ? 0.55 : mesoIndex === 7 ? 0.60 :
                                       mesoIndex >= 10 ? 0.48 : 0.53;
                     const dbRowWeight = Math.round((ONE_RM['Bench Press'] * dbRowPct * prog) / 2) * 2;
-                    const dbRowReps = mesoIndex <= 1 ? "12/arm" :
-                                       mesoIndex <= 3 ? "8-10/arm" :
-                                       mesoIndex <= 5 ? "8/arm" :
-                                       mesoIndex <= 7 ? "5-6/arm" : "6/arm";
+                    const dbRowReps = mesoIndex <= 1 ? "12/arm" : mesoIndex <= 3 ? "8-10/arm" :
+                                       mesoIndex <= 5 ? "8/arm" : mesoIndex <= 7 ? "5-6/arm" : "6/arm";
                     const dbRowNotes = mesoIndex <= 1 ? "Full ROM — elbow past torso, slow lower" :
                                         mesoIndex <= 3 ? "Control eccentric — 2 sec down" :
                                         "Heavy unilateral pull — brace hard, no hip rotation";
 
-                    // Front Squat: 60-75% of squat weight (already loaded pattern, keep lighter than back squat)
-                    // Uses same auxReps/auxSets already set by phase
-                    const fsBenchmark = mesoIndex <= 1 ? 0.60 :
-                                         mesoIndex <= 3 ? 0.65 :
-                                         mesoIndex <= 5 ? 0.68 :
-                                         mesoIndex <= 7 ? 0.72 : 0.70;
+                    // Front Squat: lighter accessory on Friday (60-72% of squat working weight)
+                    const fsBenchmark = mesoIndex <= 1 ? 0.60 : mesoIndex <= 3 ? 0.65 :
+                                         mesoIndex <= 5 ? 0.68 : mesoIndex <= 7 ? 0.72 : 0.70;
                     const frontSquatWeight = Math.round((ONE_RM['Squat'] * squatPct * fsBenchmark * prog) / 5) * 5;
                     const frontSquatPctDisplay = Math.round(squatPct * fsBenchmark * 100) + "%";
                     const frontSquatNotes = mesoIndex <= 1 ? "Upright torso — quad emphasis, slow eccentric" :
@@ -663,76 +887,182 @@
                                              mesoIndex <= 5 ? "Heavier FS — maintain elbows up throughout" :
                                              "Heavy front squat — anterior chain strength";
 
-                    // Friday Bench (volume day): 78-85% of main bench weight by phase
-                    const fridayBenchPct = mesoIndex <= 1 ? 0.78 : mesoIndex <= 3 ? 0.80 : mesoIndex <= 5 ? 0.82 : 0.84;
+                    // Friday Bench (volume day): 78-85% of main bench weight
+                    const fridayBenchPct = mesoIndex <= 1 ? 0.78 : mesoIndex <= 3 ? 0.80 :
+                                            mesoIndex <= 5 ? 0.82 : 0.84;
                     const fridayBenchWeight = Math.round((benchWeight * fridayBenchPct) / 5) * 5;
                     const fridayBenchPctDisplay = Math.round(benchPct * fridayBenchPct * 100) + "%";
                     const fridayBenchNotes = mesoIndex <= 1 ? "Volume bench — technique day, controlled reps" :
                                               mesoIndex <= 3 ? "Volume — build to top set, leave 1-2 RIR" :
-                                              mesoIndex <= 5 ? "Moderate volume — match Mon intensity feel" :
+                                              mesoIndex <= 5 ? "Moderate volume — match Wed intensity feel" :
                                               "Heavy volume bench — bar speed focus on every rep";
 
+                    // ── SESSION 1: MONDAY — Squat Day + Hamstring + Core + Plyos ────────────
                     const session1 = [
-                        {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
                         {name: "Squat", sets: mainSets, reps: mainReps, weight: String(squatWeight), percent: Math.round(squatPct*100)+"%", completed: false, notes: "Bar speed focus — compensatory acceleration"},
-                        {name: "Trap Bar Deadlift", sets: mainSets, reps: mainReps, weight: String(trapWeight), percent: Math.round(trapPct*100)+"%", completed: false, notes: "Hip drive — push floor away, not pull bar up"},
-                        {name: "RFESS", sets: auxSets, reps: auxReps+"/leg", weight: String(rfessWeight), percent: rfessPct*100|0 + "%", completed: false, notes: "Unilateral squat — DB in each hand, front foot elevated · Mike Boyle single-leg emphasis"}
+                        {name: "RFESS", sets: auxSets, reps: auxReps+"/leg", weight: String(rfessWeight), percent: rfessPct*100|0 + "%", completed: false, notes: "Unilateral squat — DB in each hand · Mike Boyle single-leg emphasis"},
+                        {name: "Nordic Curl", sets: nordicSets, reps: nordicReps, weight: "", percent: "", completed: false, notes: nordicNotes}
                     ];
-                    if (volume >= 6) session1.push({name: "Pallof Press", sets: pallofSets, reps: pallofReps, weight: String(pallofWeight), percent: "", completed: false, notes: "Anti-rotation core — brace before pressing out, hold 2 sec"});
+                    if (volume >= 5) session1.push({name: "Pallof Press", sets: pallofSets, reps: pallofReps, weight: String(pallofWeight), percent: "", completed: false, notes: "Anti-rotation core — brace before pressing out, hold 2 sec"});
+                    session1.push({name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "POST-LIFTING · Easy pace ~9min", mileage: 1, isRun: true});
 
+                    // ── SESSION 2: WEDNESDAY — Upper Body + Olympic + Shoulder Health ───────
                     const session2 = [
-                        {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                        {name: "Power Clean", sets: mesoIndex >= 3 ? 5 : 4, reps: mesoIndex >= 7 ? "2-3" : "3", weight: String(cleanWeight), percent: Math.round(cleanPct*100)+"%", completed: false, notes: "Explosive triple extension — catch in quarter-squat"},
-                        {name: "Bench Press", sets: mainSets, reps: mainReps, weight: String(benchWeight), percent: Math.round(benchPct*100)+"%", completed: false, notes: "Leg drive — tight arch, drive feet through floor"},
+                        {name: "Power Clean", sets: cleanSets, reps: cleanReps, weight: String(cleanWeight), percent: Math.round(cleanPct*100)+"%", completed: false, notes: "Explosive triple extension — catch in quarter-squat · velocity > load"},
+                        {name: "Bench Press", sets: benchSets, reps: benchReps, weight: String(benchWeight), percent: Math.round(benchPct*100)+"%", completed: false, notes: "Leg drive — tight arch, drive feet through floor"},
                         {name: "Pull-ups", sets: auxSets, reps: auxReps, weight: pullupWeight, percent: "", completed: false, notes: pullupNotes},
-                        {name: "DB Bench", sets: auxSets, reps: auxReps, weight: String(dbBenchWeight), percent: "", completed: false, notes: dbBenchNotes}
+                        {name: "DB Shoulder Press", sets: ohpSets, reps: ohpReps, weight: String(ohpWeight), percent: "", completed: false, notes: ohpNotes},
+                        {name: "Face Pulls", sets: facePullSets, reps: facePullReps, weight: String(facePullWeight), percent: "", completed: false, notes: "Shoulder health — external rotation emphasis, squeeze rear delts 2sec"}
                     ];
-                    if (volume >= 6) session2.push({name: "Barbell Rows", sets: auxSets, reps: auxReps, weight: String(rowWeight), percent: "", completed: false, notes: rowNotes});
+                    session2.push({name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "POST-LIFTING · Easy pace ~9min", mileage: 1, isRun: true});
 
+                    // ── SESSION 3: FRIDAY — Hip Hinge Day + Front Squat + Bench Vol + Pull ──
                     const session3 = [
-                        {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
+                        {name: "Trap Bar Deadlift", sets: mainSets, reps: mainReps, weight: String(trapWeight), percent: Math.round(trapPct*100)+"%", completed: false, notes: "Hip drive — push floor away, not pull bar up"},
                         {name: "Front Squat", sets: auxSets, reps: auxReps, weight: String(frontSquatWeight), percent: frontSquatPctDisplay, completed: false, notes: frontSquatNotes},
-                        {name: "Bench Press", sets: auxSets, reps: auxReps, weight: String(fridayBenchWeight), percent: fridayBenchPctDisplay, completed: false, notes: fridayBenchNotes},
+                        {name: "RDL", sets: rdlSets, reps: rdlReps, weight: String(rdlWeight), percent: Math.round(rdlPct*100)+"%", completed: false, notes: rdlNotes},
+                        {name: "Bench Press (Volume)", sets: auxSets, reps: auxReps, weight: String(fridayBenchWeight), percent: fridayBenchPctDisplay, completed: false, notes: fridayBenchNotes},
                         {name: "DB Rows", sets: auxSets, reps: dbRowReps, weight: String(dbRowWeight), percent: "", completed: false, notes: dbRowNotes}
                     ];
+                    session3.push({name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "POST-LIFTING · Easy pace ~9min", mileage: 1, isRun: true});
 
+                    // ── RUNNING PROGRAMMING ──────────────────────────────────────────────────
+                    // Weeks 1-17: handled by 5K overlay (fiveKOverlay) or base running
+                    // Weeks 18+: mile-specific periodized running (mileRunPlan)
                     const runMileage1 = mesoIndex === 0 ? (isRecovery ? 2 : 3) : mesoIndex <= 5 ? 4 : 5;
                     const runMileage2 = mesoIndex === 0 ? (isRecovery ? 1.5 : 2.5) : mesoIndex <= 5 ? 3 : 4;
 
-                    const runProtocol = mesoIndex === 0 ? (isRecovery ? "Easy 15-20min" : "Easy 25min + strides") :
-                                       mesoIndex <= 5 ? "Tempo 25-30min" : "Intervals 6x800m";
+                    let tueRun, thuRun;
+                    if (weekNum <= 17) {
+                        // 5K phase or early base — will be overridden by fiveKOverlay for weeks 7-17
+                        const runProtocol = mesoIndex === 0 ? (isRecovery ? "Easy 15-20min" : "Easy 25min + strides") :
+                                           "Tempo 25-30min @ 7:30-7:45/mi";
+                        tueRun = {name: runProtocol, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Pace discipline", mileage: runMileage1, isRun: true};
+                        thuRun = {name: "Easy 20-30min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Recovery — 8:30-9:00/mi", mileage: runMileage2, isRun: true};
+                    } else if (weekNum <= 24) {
+                        // Weeks 18-24: Base rebuild post-5K + aerobic development for mile
+                        const wk = weekNum - 17; // 1-7
+                        const tempoMiles = Math.min(2 + Math.floor(wk / 2), 4);
+                        tueRun = {name: "Tempo " + (20 + wk * 2) + "min @ 7:20-7:30/mi", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Aerobic rebuild · controlled effort · mile base phase", mileage: tempoMiles, isRun: true};
+                        thuRun = {name: "Easy 25-30min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy 8:30-9:00/mi · strides at mile pace effort", mileage: 3, isRun: true};
+                    } else if (weekNum <= 32) {
+                        // Weeks 25-32: VO2max development — 800m-1200m intervals
+                        const wk = weekNum - 24;
+                        const isRunDeload = wk === 4 || wk === 8;
+                        if (isRunDeload) {
+                            tueRun = {name: "3x800m @ 6:40-6:50/mi (3min rest)", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "VO2max deload — maintain stimulus, reduced volume", mileage: 3, isRun: true};
+                        } else {
+                            const reps800 = Math.min(4 + Math.floor((wk-1) / 2), 7);
+                            const pace = wk <= 3 ? "6:50-7:00" : "6:40-6:50";
+                            tueRun = {name: reps800 + "x800m @ " + pace + "/mi (2:30 rest)", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "VO2max intervals (Schumacher/McMillan) · 95-98% HR · " + reps800 + " reps", mileage: Math.round(reps800 * 0.6 + 1.5), isRun: true};
+                        }
+                        thuRun = {name: "Easy 30min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Recovery — 8:30-9:00/mi only", mileage: 3.5, isRun: true};
+                    } else if (weekNum <= 40) {
+                        // Weeks 33-40: Mile-specific intervals — 400m-800m at goal pace and faster
+                        const wk = weekNum - 32;
+                        const isRunDeload = wk === 4 || wk === 8;
+                        if (isRunDeload) {
+                            tueRun = {name: "4x400m @ 5:10/mi (2min rest)", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Mile-specific deload — keep sharpness, low volume", mileage: 2.5, isRun: true};
+                        } else {
+                            const sessions = [
+                                {name: "6x400m @ 5:10/mi (90s rest)", mileage: 3, notes: "Mile pace intervals · Greg McMillan pacing"},
+                                {name: "4x600m @ 5:00/mi (2min rest)", mileage: 3, notes: "Slightly faster than goal · build sub-5:15 capacity"},
+                                {name: "3x800m @ 5:10/mi + 4x200m @ 4:50/mi", mileage: 3.5, notes: "Mixed: threshold + speed · Brad Hudson adaptive method"},
+                                {name: "8x400m @ 5:05/mi (75s rest)", mileage: 3.5, notes: "Volume 400s · short rest builds lactate tolerance"},
+                                {name: "5x600m @ 5:00/mi (2min rest)", mileage: 3.5, notes: "Race-specific speed endurance"},
+                                {name: "2x(4x400m) @ 5:00/mi (60s/3min rest)", mileage: 4, notes: "Set training · race simulation with recovery"}
+                            ];
+                            const s = sessions[(wk-1) % sessions.length];
+                            tueRun = {name: s.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: s.notes, mileage: s.mileage, isRun: true};
+                        }
+                        thuRun = {name: "Easy 25min + 6x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy pace · strides at sub-5:00/mi effort", mileage: 3, isRun: true};
+                    } else if (weekNum <= 48) {
+                        // Weeks 41-48: Sharpening — 200m-400m fast, race pace work
+                        const wk = weekNum - 40;
+                        const isRunDeload = wk === 4 || wk === 8;
+                        if (isRunDeload) {
+                            tueRun = {name: "3x400m @ 5:00/mi (2min rest)", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Sharpening deload — fast but low volume", mileage: 2, isRun: true};
+                        } else {
+                            const sessions = [
+                                {name: "8x200m @ 4:40/mi (90s rest)", mileage: 2.5, notes: "Speed sharpening — faster than goal pace"},
+                                {name: "1200m + 800m + 400m @ 5:00/mi (3min rest)", mileage: 3, notes: "Descending ladder · race simulation · Canova method"},
+                                {name: "6x400m @ 4:55/mi (2min rest)", mileage: 3, notes: "Faster than goal — build confidence at sub-5:00"},
+                                {name: "2x800m @ 5:05/mi + 6x200m @ 4:35/mi", mileage: 3, notes: "Mixed session — threshold + top-end speed"},
+                                {name: "4x400m @ 4:50/mi (2:30 rest)", mileage: 2.5, notes: "Race pace+++ · neuromuscular priming"},
+                                {name: "1 Mile Time Trial (all-out)", mileage: 2.5, notes: "TEST — full warm-up · race pace · track preferred"}
+                            ];
+                            const s = sessions[(wk-1) % sessions.length];
+                            tueRun = {name: s.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: s.notes, mileage: s.mileage, isRun: true};
+                        }
+                        thuRun = {name: "Easy 20min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy · keep legs fresh for speed work", mileage: 2.5, isRun: true};
+                    } else if (weekNum <= 52) {
+                        // Weeks 49-52: Mile Peaking — reduced volume, race-pace sharpening
+                        const wk = weekNum - 48;
+                        const sessions = [
+                            {name: "4x400m @ 5:00/mi (2:30 rest)", mileage: 2, notes: "Goal pace — smooth and controlled"},
+                            {name: "2x800m @ 5:10/mi + 4x200m @ 4:40/mi", mileage: 2.5, notes: "Combo: race pace + kick speed"},
+                            {name: "3x400m @ 4:55/mi (3min rest)", mileage: 2, notes: "Near-peak sharpening — feel fast, stay relaxed"},
+                            {name: "2x400m @ 5:00/mi + strides", mileage: 1.5, notes: "Final tune-up — legs should feel springy and light"}
+                        ];
+                        const s = sessions[(wk-1) % sessions.length];
+                        tueRun = {name: s.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: s.notes, mileage: s.mileage, isRun: true};
+                        thuRun = {name: "Easy 15-20min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Keep it truly easy · 9:00/mi", mileage: 2, isRun: true};
+                    } else {
+                        // Weeks 53-56: Testing & Realization
+                        const wk = weekNum - 52;
+                        if (wk <= 2) {
+                            tueRun = {name: "3x400m @ goal pace + strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Stay sharp — race is coming · don't go all out", mileage: 2, isRun: true};
+                        } else if (wk === 3) {
+                            tueRun = {name: "🏆 MILE TIME TRIAL — Sub-5:15 Goal!", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "400m: 1:18 | 800m: 2:37 | 1200m: 3:56 | FINISH: 5:14 · SEND IT", mileage: 2, isRun: true};
+                        } else {
+                            tueRun = {name: "Easy 20min cooldown week", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Season complete — recovery", mileage: 2, isRun: true};
+                        }
+                        thuRun = {name: "Easy 15min or OFF", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Testing week — prioritize CNS recovery", mileage: 1.5, isRun: true};
+                    }
 
-                    // Build Monday: lifting + phase-appropriate plyometrics
-                    const plyoExercises = getPlyoExercises(mesoIndex, isDeload);
-                    const mondayExercises = [...session1, ...plyoExercises];
+                    // ── Build Monday: Activation/PAP + Squat + Accessories ─────────────────
+                    const mondayActivation = getMondayActivation(weekNum, mesoIndex, isDeload);
+                    const mondayExercises = [
+                        ...mondayActivation.preLift,
+                        ...session1.slice(0, -1), // Everything except Daily Mile
+                        ...mondayActivation.postLift,
+                        session1[session1.length - 1] // Daily Mile last
+                    ];
+                    const hasPlyoTest = mondayActivation.preLift.some(e => e.isPlyoTest) || mondayActivation.postLift.some(e => e.isPlyoTest);
                     const mondayNotes = isDeload ? "DELOAD — Reduced volume" :
                         mesoIndex === 0 ? "Active recovery" :
-                        mesoIndex <= 2 ? "Strength + Accumulation Plyos" :
-                        mesoIndex <= 4 ? "Strength + Intensive Plyos (Cal Dietz triphasic)" :
-                        mesoIndex <= 7 ? "Strength + Reactive Plyos — RFD peak" :
-                        mesoIndex === 9 ? "Complex Training — PAP pairs (DeFranco method)" :
-                        mesoIndex >= 10 ? "Peak Power — VJ specific" : "Strength + Plyos";
+                        mesoIndex <= 3 ? "Squat + Pre-Lift Activation" :
+                        mesoIndex === 4 ? "Squat + PAP Complex (CMJ pre & post squat)" :
+                        mesoIndex === 5 ? "Squat + Activation (no PAP — high lifting volume)" :
+                        mesoIndex <= 7 ? "Squat + PAP (CMJ after top set)" :
+                        mesoIndex === 8 ? "Squat + Maintenance PAP" :
+                        mesoIndex === 9 ? "Squat + Advanced PAP (Depth Jump after top set)" :
+                        mesoIndex >= 10 ? "Squat + PAP (peak phase)" : "Squat Day";
 
-                    // Build Saturday: phase-appropriate sprint work
+                    // ── Build Saturday: PRIMARY PLYOS (before sprints) + Sprint Work ──────
+                    const saturdayPlyos = getSaturdayPlyos(weekNum);
                     const sprintExercises = getSprintExercises(mesoIndex, isDeload, weekInBlock);
+                    const saturdayExercises = [...saturdayPlyos, ...sprintExercises];
+                    const satHasPlyoTest = saturdayPlyos.some(e => e.isPlyoTest);
                     const saturdayName = mesoIndex === 0 ? "Active Recovery" :
-                        mesoIndex === 1 ? "Sprint Mechanics" :
-                        mesoIndex <= 3 ? "Acceleration Development" :
-                        mesoIndex <= 5 ? "Speed-Strength" :
-                        mesoIndex <= 7 ? "30yd Dash Training" :
-                        mesoIndex === 9 ? "Complex Sprint (PAP)" :
-                        mesoIndex >= 10 ? "Peak Sprint / Sub-4.0 Prep" : "Sprint Work";
-                    const saturdayNotes = mesoIndex >= 7 ? "⚡ Sub-4.0 30yd Dash — TIME every rep · full CNS recovery between" :
-                        mesoIndex >= 4 ? "Speed-strength — reactive starts + acceleration" :
-                        "Sprint mechanics — Dan Pfaff / Derek Hansen principles";
+                        mesoIndex === 1 ? "Plyos + Sprint Mechanics" :
+                        mesoIndex <= 3 ? "Plyos + Acceleration" :
+                        mesoIndex <= 5 ? "Plyos + Speed-Strength" :
+                        mesoIndex <= 7 ? "Plyos + 30yd Training" :
+                        mesoIndex === 9 ? "Plyos + Complex Sprint" :
+                        mesoIndex >= 10 ? "Plyos + Peak Sprint" : "Plyos + Sprint Work";
+                    const saturdayNotes = (satHasPlyoTest ? "📊 CMJ TEST DAY · " : "") +
+                        (mesoIndex >= 7 ? "⚡ Sub-4.0 30yd Dash — TIME every rep · full CNS recovery" :
+                        mesoIndex >= 4 ? "Plyos FIRST → then sprint work · speed-strength" :
+                        "Plyos FIRST → then sprint mechanics · Dan Pfaff / Derek Hansen");
 
                     return [
-                        { name: "Lower Body + Plyos", day: "Monday", exercises: mondayExercises, notes: mondayNotes },
-                        { name: "Quality Run 1", day: "Tuesday", exercises: [{name: runProtocol, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Pace discipline", mileage: runMileage1, isRun: true}], notes: "Running" },
-                        { name: "Upper Body + Olympic", day: "Wednesday", exercises: session2, notes: "Technique focus" },
-                        { name: "Quality Run 2", day: "Thursday", exercises: [{name: "Easy 20-30min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Recovery", mileage: runMileage2, isRun: true}], notes: "Easy run" },
-                        { name: "Full Body", day: "Friday", exercises: session3, notes: "Volume accumulation" },
-                        { name: saturdayName, day: "Saturday", exercises: sprintExercises, notes: saturdayNotes }
+                        { name: "Squat Day" + (mondayActivation.preLift.length || mondayActivation.postLift.length ? " + Activation" : ""), day: "Monday", exercises: mondayExercises, notes: mondayNotes },
+                        { name: "Quality Run", day: "Tuesday", exercises: [tueRun], notes: weekNum <= 17 ? "5K Prep Running" : weekNum <= 24 ? "Base Rebuild" : weekNum <= 32 ? "VO2max Development" : weekNum <= 40 ? "Mile-Specific Intervals" : weekNum <= 48 ? "Speed Sharpening" : weekNum <= 52 ? "Mile Peaking" : "Testing" },
+                        { name: "Upper Body + Shoulders", day: "Wednesday", exercises: session2, notes: "Press + Pull + Shoulder Health" },
+                        { name: "Easy Run", day: "Thursday", exercises: [thuRun], notes: "Recovery run — easy effort only" },
+                        { name: "Hinge Day + Volume", day: "Friday", exercises: session3, notes: "Trap Bar DL + RDL + Bench Volume" },
+                        { name: saturdayName, day: "Saturday", exercises: saturdayExercises, notes: saturdayNotes, isPlyoTestDay: satHasPlyoTest }
                     ];
                 }
 
@@ -773,7 +1103,7 @@
                         // Generate completely fresh sessions for this week/phase
                         const freshSessions = generateSessions(week.weekNum, mesoIndex, volume, isDeload, weekInBlock, isRecovery);
 
-                        // --- Monday (index 0): fresh lifting + new plyos, preserve completion ---
+                        // --- Monday (index 0): Squat Day + Hamstring + Plyos ---
                         if (week.sessions[0]) {
                             const oldExercises = week.sessions[0].exercises || [];
                             week.sessions[0] = {
@@ -782,7 +1112,17 @@
                             };
                         }
 
-                        // --- Wednesday (index 2): fresh upper body + new weights, preserve completion ---
+                        // --- Tuesday (index 1): Periodized running (unless 5K overlay) ---
+                        const isFiveKWeek = fiveKOverlay[week.weekNum];
+                        if (!isFiveKWeek && week.sessions[1]) {
+                            const oldExercises = week.sessions[1].exercises || [];
+                            week.sessions[1] = {
+                                ...freshSessions[1],
+                                exercises: mergeCompletionState(freshSessions[1].exercises, oldExercises)
+                            };
+                        }
+
+                        // --- Wednesday (index 2): Upper Body + Shoulders ---
                         if (week.sessions[2]) {
                             const oldExercises = week.sessions[2].exercises || [];
                             week.sessions[2] = {
@@ -791,7 +1131,16 @@
                             };
                         }
 
-                        // --- Friday (index 4): fresh full body + new weights, preserve completion ---
+                        // --- Thursday (index 3): Easy run (unless 5K overlay) ---
+                        if (!isFiveKWeek && week.sessions[3]) {
+                            const oldExercises = week.sessions[3].exercises || [];
+                            week.sessions[3] = {
+                                ...freshSessions[3],
+                                exercises: mergeCompletionState(freshSessions[3].exercises, oldExercises)
+                            };
+                        }
+
+                        // --- Friday (index 4): Hinge Day + Volume ---
                         if (week.sessions[4]) {
                             const oldExercises = week.sessions[4].exercises || [];
                             week.sessions[4] = {
@@ -800,12 +1149,7 @@
                             };
                         }
 
-                        // --- Monday plyos already in freshSessions[0] via generateSessions → getPlyoExercises ---
-                        // (no separate step needed)
-                        const mon = week.sessions[0]; // just for legacy reference
-
-                        // --- Saturday (index 5): only replace if NOT a 5K overlay week (7-16) ---
-                        const isFiveKWeek = fiveKOverlay[week.weekNum];
+                        // --- Saturday (index 5): only replace if NOT a 5K overlay week ---
                         if (!isFiveKWeek) {
                             const satName = mesoIndex === 0 ? "Active Recovery" :
                                 mesoIndex === 1 ? "Sprint Mechanics (Dan Pfaff)" :
@@ -847,12 +1191,11 @@
                     if (!savedData || !savedData.weeks) return savedData;
                     Object.keys(fiveKOverlay).forEach(weekNumStr => {
                         const weekNum = parseInt(weekNumStr);
-                        const weekIdx = weekNum - 1; // 0-indexed
+                        const weekIdx = weekNum - 1;
                         if (!savedData.weeks[weekIdx]) return;
                         const ov = fiveKOverlay[weekNum];
                         const w = savedData.weeks[weekIdx];
 
-                        // Mark week as 5K overlay applied
                         w.has5KOverlay = true;
                         if (weekNum === 17) w.is5KRaceWeek = true;
 
@@ -861,31 +1204,16 @@
                             name: "5K Prep Quality Run",
                             day: "Tuesday",
                             exercises: [{ name: ov.tue.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.tue.notes, mileage: ov.tue.mileage, isRun: true }],
-                            notes: "🏃 5K Prep — Apr 30 Race Goal: Sub-21:00"
+                            notes: "🏃 5K Prep — Apr 30 Race Goal: Sub-21:00 (1 speed session/week)"
                         };
                         // Thursday (session index 3)
                         w.sessions[3] = {
-                            name: "Easy Recovery Run",
+                            name: weekNum === 17 ? "🏁 5K RACE DAY — Thu Apr 30" : "Easy Recovery Run",
                             day: "Thursday",
                             exercises: [{ name: ov.thu.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.thu.notes, mileage: ov.thu.mileage, isRun: true }],
-                            notes: "Easy only — 8:30-9:00/mi, no pushing"
+                            notes: weekNum === 17 ? "🏁 RACE DAY — Thu Apr 30 — Sub-21:00!" : "Easy only — 8:30-9:00/mi, no pushing"
                         };
-                        // Thursday (index 3) = race day for week 18 (Apr 30 is a Thursday)
-                        if (weekNum === 17) {
-                            w.sessions[3] = {
-                                name: "🏁 5K RACE DAY — Thu Apr 30",
-                                day: "Thursday",
-                                exercises: [{ name: "🏁 5K RACE — Sub-21:00 Goal!", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Mile 1: 7:00 | Mile 2: 6:55 | Mile 3: 6:40 | TARGET: 20:35-20:45 🏆", mileage: 3.1, isRun: true }],
-                                notes: "🏁 RACE DAY — Thu Apr 30 — Sub-21:00!"
-                            };
-                        }
-                        // Saturday (session index 5)
-                        w.sessions[5] = {
-                            name: weekNum === 17 ? "Post-Race Recovery" : "5K Speed Work",
-                            day: "Saturday",
-                            exercises: [{ name: weekNum === 18 ? "Easy Recovery Run 20min" : ov.sat.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: weekNum === 17 ? "Post-race recovery · easy shuffle · celebrate the work" : ov.sat.notes, mileage: weekNum === 17 ? 2 : ov.sat.mileage, isRun: true }],
-                            notes: weekNum === 17 ? "🎉 Post-race recovery — Apr 30 5K done!" : "🏃 5K Speed — Apr 30 Race Goal: Sub-21:00"
-                        };
+                        // Saturday NOT overridden — stays as plyos + sprint mechanics
                     });
                     savedData.lastUpdated = Date.now();
                     return savedData;
@@ -977,6 +1305,11 @@
                     const [syncStatus, setSyncStatus] = useState('syncing');
                     const [lastSync, setLastSync] = useState(null);
                     const [isOnline, setIsOnline] = useState(navigator.onLine);
+                    // 1RM Calculator state
+                    const [calcLift, setCalcLift] = useState('Squat');
+                    const [calcWeight, setCalcWeight] = useState('');
+                    const [calcReps, setCalcReps] = useState('');
+                    const [calcResult, setCalcResult] = useState(null);
                     const chartRef = useRef(null);
                     const chartInstance = useRef(null);
                     const macroChartRef = useRef(null);
@@ -1152,6 +1485,24 @@
                     const weeksWithMileage = data.weeks.filter((_, idx) => calcWeekMileage(idx) > 0).length;
                     const avgWeeklyMileage = weeksWithMileage > 0 ? (totalMileage / weeksWithMileage).toFixed(1) : 0;
 
+                    // ── CONTACT TRACKING (Plyo v2) ──────────────────────────────────────────
+                    const calcSessionContacts = (session) => {
+                        return session.exercises.reduce((total, ex) => total + (ex.contacts || 0), 0);
+                    };
+                    const calcWeekContacts = (weekIdx) => {
+                        if (!data.weeks[weekIdx]) return 0;
+                        return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcSessionContacts(sess), 0);
+                    };
+                    const currentSessionContacts = data.weeks[currentWeek] ? calcSessionContacts(data.weeks[currentWeek].sessions[currentSession]) : 0;
+                    const currentWeekContacts = calcWeekContacts(currentWeek);
+                    // Phase contacts: sum all weeks in same mesocycle
+                    const currentMesoIndex = Math.floor(currentWeek / 4);
+                    const phaseStartWeek = currentMesoIndex * 4;
+                    const phaseEndWeek = Math.min(phaseStartWeek + 4, data.weeks.length);
+                    let phaseContacts = 0;
+                    for (let i = phaseStartWeek; i < phaseEndWeek; i++) phaseContacts += calcWeekContacts(i);
+                    const plyoPhaseLabel = currentMesoIndex <= 2 ? "A·Foundation" : currentMesoIndex <= 5 ? "B·Development" : currentMesoIndex <= 9 ? "C·Intensification" : "D·Realization";
+
                     if (!data.weeks || !data.weeks[currentWeek]) {
                         return (<div className="min-h-screen p-8 flex items-center justify-center"><SyncIndicator status={syncStatus} lastSync={lastSync} />
                             <div className="glass rounded-2xl shadow-2xl p-8 text-center">
@@ -1205,9 +1556,9 @@
                                 </div>
 
                                 <div className="glass rounded-xl shadow-lg p-4 mb-6 flex flex-wrap gap-3">
-                                    {['overview', 'goals', 'volume', 'mileage', 'workout'].map(v => (
+                                    {['overview', 'goals', 'volume', 'mileage', 'workout', '1rm'].map(v => (
                                         <button key={v} onClick={() => setView(v)} className={`px-6 py-3 rounded-lg font-semibold transition-all ${view === v ? 'bg-blue-700 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
-                                            {v.charAt(0).toUpperCase() + v.slice(1)}
+                                            {v === '1rm' ? '1RM Calc' : v.charAt(0).toUpperCase() + v.slice(1)}
                                         </button>
                                     ))}
                                     <button onClick={() => setIsEditMode(!isEditMode)} className={`ml-auto px-6 py-3 rounded-lg font-semibold transition-all ${isEditMode ? 'bg-orange-500 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
@@ -1538,12 +1889,29 @@
                                                     <p className="text-sm font-bold font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏃 5K Prep Week — Running sessions modified for Apr 30 race · Strength stays unchanged</p>
                                                 </div>
                                             )}
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {session.isPlyoTestDay && (
+                                                <div className="mb-4 p-3 border-2 rounded-lg" style={{background:'rgba(0,163,163,0.08)', borderColor:'#00A3A3'}}>
+                                                    <p className="text-sm font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>📊 PLYO TEST DAY — Record CMJ height · Compare to previous tests · Track RSI & GCT</p>
+                                                </div>
+                                            )}
+                                            {session.exercises.some(e => e.isPlyoTest) && !session.isPlyoTestDay && (
+                                                <div className="mb-4 p-3 border-2 rounded-lg" style={{background:'rgba(0,163,163,0.08)', borderColor:'#00A3A3'}}>
+                                                    <p className="text-sm font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>📊 CMJ TEST — Record height for this session</p>
+                                                </div>
+                                            )}
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                                                 <div className="bg-blue-50 rounded-lg p-4"><p className="text-xs text-gray-600">Completion</p><p className="text-2xl font-bold text-blue-700" style={{color:'#005F87'}}>{completion}%</p></div>
                                                 <div className="bg-blue-50 rounded-lg p-4"><p className="text-xs text-gray-600">Session Vol</p><p className="text-2xl font-bold text-blue-600">{(currentSessionVolume/1000).toFixed(1)}k</p></div>
                                                 <div className="bg-green-50 rounded-lg p-4"><p className="text-xs text-gray-600">Week Vol</p><p className="text-2xl font-bold text-green-600">{(currentWeekVolume/1000).toFixed(1)}k</p></div>
                                                 <div className="bg-orange-50 rounded-lg p-4"><p className="text-xs text-gray-600">Intensity</p><p className="text-2xl font-bold font-semibold" style={{color:'#005F87'}}>{week.intensity}/10</p></div>
                                             </div>
+                                            {currentSessionContacts > 0 && (
+                                                <div className="grid grid-cols-3 gap-4">
+                                                    <div className="rounded-lg p-3" style={{background:'rgba(0,163,163,0.08)'}}><p className="text-xs" style={{color:'#565A5C'}}>Session Contacts</p><p className="text-xl font-bold" style={{color:'#00A3A3'}}>{currentSessionContacts}</p></div>
+                                                    <div className="rounded-lg p-3" style={{background:'rgba(0,163,163,0.08)'}}><p className="text-xs" style={{color:'#565A5C'}}>Week Contacts</p><p className="text-xl font-bold" style={{color:'#00A3A3'}}>{currentWeekContacts}</p></div>
+                                                    <div className="rounded-lg p-3" style={{background:'rgba(0,163,163,0.08)'}}><p className="text-xs" style={{color:'#565A5C'}}>Phase ({plyoPhaseLabel})</p><p className="text-xl font-bold" style={{color:'#00A3A3'}}>{phaseContacts}</p></div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="glass rounded-xl shadow-lg overflow-hidden">
@@ -1561,18 +1929,18 @@
                                                     <thead><tr className="border-b-2 border-gray-200">
                                                         <th className="px-4 py-3 text-left">Done</th><th className="px-4 py-3 text-left">Exercise</th>
                                                         <th className="px-4 py-3 text-center">Sets</th><th className="px-4 py-3 text-center">Reps</th>
-                                                        <th className="px-4 py-3 text-center">Weight</th><th className="px-4 py-3 text-center">%1RM</th>
+                                                        <th className="px-4 py-3 text-center">Weight</th><th className="px-4 py-3 text-center">%1RM / <span style={{color:'#00A3A3'}}>Contacts</span></th>
                                                         <th className="px-4 py-3 text-left">Notes</th>{isEditMode && <th className="px-4 py-3">Del</th>}
                                                     </tr></thead>
                                                     <tbody>
                                                         {session.exercises.map((ex, idx) => (
-                                                            <tr key={idx} className={`border-b border-gray-200 exercise-row ${ex.completed ? 'completed' : ''}`}>
+                                                            <tr key={idx} className={`border-b border-gray-200 exercise-row ${ex.completed ? 'completed' : ''}`} style={ex.isPlyoTest ? {background:'rgba(0,163,163,0.10)'} : ex.isPlyo ? {background:'rgba(0,163,163,0.04)'} : {}}>
                                                                 <td className="px-4 py-3"><input type="checkbox" checked={ex.completed} onChange={() => toggleExerciseComplete(idx)} className="w-5 h-5"/></td>
-                                                                <td className="px-4 py-3">{isEditMode ? <input type="text" value={ex.name} onChange={(e) => updateExercise(idx, 'name', e.target.value)} className="w-full px-2 py-1 border rounded"/> : <span className="font-semibold exercise-name">{ex.name}</span>}</td>
+                                                                <td className="px-4 py-3">{isEditMode ? <input type="text" value={ex.name} onChange={(e) => updateExercise(idx, 'name', e.target.value)} className="w-full px-2 py-1 border rounded"/> : <span className="font-semibold exercise-name">{ex.isPlyo && <span className="inline-block w-2 h-2 rounded-full mr-2" style={{background:'#00A3A3'}}></span>}{ex.name}{ex.isPlyoTest && <span className="ml-2 px-2 py-0.5 rounded text-xs font-bold text-white" style={{background:'#00A3A3'}}>TEST</span>}</span>}</td>
                                                                 <td className="px-4 py-3 text-center">{isEditMode ? <input type="number" value={ex.sets} onChange={(e) => updateExercise(idx, 'sets', e.target.value)} className="w-16 px-2 py-1 border rounded text-center"/> : <span className="font-semibold">{ex.sets}</span>}</td>
                                                                 <td className="px-4 py-3 text-center">{isEditMode ? <input type="text" value={ex.reps} onChange={(e) => updateExercise(idx, 'reps', e.target.value)} className="w-20 px-2 py-1 border rounded text-center"/> : <span>{ex.reps}</span>}</td>
                                                                 <td className="px-4 py-3 text-center">{isEditMode ? <input type="text" value={ex.weight || ''} onChange={(e) => updateExercise(idx, 'weight', e.target.value)} className="w-24 px-2 py-1 border rounded text-center"/> : <span className="font-medium">{ex.weight || '-'} {ex.weight && ex.weight !== 'BW' && 'lbs'}</span>}</td>
-                                                                <td className="px-4 py-3 text-center"><span className={ex.percent ? 'bg-orange-100 text-orange-700 px-2 py-1 rounded font-semibold' : ''}>{ex.percent || '-'}</span></td>
+                                                                <td className="px-4 py-3 text-center">{ex.contacts ? <span className="px-2 py-1 rounded font-semibold text-xs" style={{background:'rgba(0,163,163,0.15)', color:'#00A3A3'}}>{ex.contacts}</span> : <span className={ex.percent ? 'bg-orange-100 text-orange-700 px-2 py-1 rounded font-semibold' : ''}>{ex.percent || '-'}</span>}</td>
                                                                 <td className="px-4 py-3 text-xs text-gray-600">{ex.notes}{ex.mileage && <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold">{ex.mileage} mi</span>}</td>
                                                                 {isEditMode && <td className="px-4 py-3"><button onClick={() => deleteExercise(idx)} className="px-3 py-1 bg-red-500 text-white rounded">X</button></td>}
                                                             </tr>
@@ -1587,6 +1955,121 @@
                                                 <p className="text-sm text-gray-600 mt-2">Deletes all progress on all devices</p>
                                             </button>
                                         )}
+                                    </div>
+                                )}
+
+                                {view === '1rm' && (
+                                    <div className="space-y-6">
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h2 className="text-2xl font-bold mb-2" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>1RM Calculator</h2>
+                                            <p className="text-sm mb-6" style={{color:'#565A5C'}}>Enter a weight × reps you completed. Estimates your 1-rep max using Epley & Brzycki formulas.</p>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Lift</label>
+                                                    <select value={calcLift} onChange={(e) => setCalcLift(e.target.value)}
+                                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold">
+                                                        {Object.keys(data.oneRepMaxes || ONE_RM).map(lift => (
+                                                            <option key={lift} value={lift}>{lift}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Weight (lbs)</label>
+                                                    <input type="number" value={calcWeight} onChange={(e) => setCalcWeight(e.target.value)}
+                                                        placeholder="e.g. 225" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold text-center"/>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Reps Completed</label>
+                                                    <input type="number" value={calcReps} onChange={(e) => setCalcReps(e.target.value)}
+                                                        placeholder="e.g. 5" min="1" max="30" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold text-center"/>
+                                                </div>
+                                            </div>
+
+                                            <button onClick={() => {
+                                                const w = parseFloat(calcWeight); const r = parseInt(calcReps);
+                                                if (!w || !r || r < 1) { setCalcResult(null); return; }
+                                                if (r === 1) { setCalcResult({epley: w, brzycki: w, avg: w, reps: r, weight: w}); return; }
+                                                const epley = Math.round(w * (1 + r / 30));
+                                                const brzycki = Math.round(w * (36 / (37 - r)));
+                                                const avg = Math.round((epley + brzycki) / 2);
+                                                setCalcResult({epley, brzycki, avg, reps: r, weight: w});
+                                            }} className="w-full py-3 rounded-lg text-white font-bold text-lg mb-4" style={{background:'#005F87'}}>
+                                                Calculate 1RM
+                                            </button>
+
+                                            {calcResult && (
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-3 gap-4">
+                                                        <div className="rounded-lg p-4 text-center" style={{background:'rgba(0,95,135,0.08)'}}>
+                                                            <p className="text-xs font-semibold" style={{color:'#565A5C'}}>Epley Formula</p>
+                                                            <p className="text-3xl font-bold" style={{color:'#005F87'}}>{calcResult.epley}</p>
+                                                            <p className="text-xs" style={{color:'#565A5C'}}>lbs</p>
+                                                        </div>
+                                                        <div className="rounded-lg p-4 text-center" style={{background:'rgba(0,163,163,0.08)'}}>
+                                                            <p className="text-xs font-semibold" style={{color:'#565A5C'}}>Brzycki Formula</p>
+                                                            <p className="text-3xl font-bold" style={{color:'#00A3A3'}}>{calcResult.brzycki}</p>
+                                                            <p className="text-xs" style={{color:'#565A5C'}}>lbs</p>
+                                                        </div>
+                                                        <div className="rounded-lg p-4 text-center border-2" style={{background:'rgba(0,95,135,0.12)', borderColor:'#005F87'}}>
+                                                            <p className="text-xs font-semibold" style={{color:'#565A5C'}}>Average (Recommended)</p>
+                                                            <p className="text-3xl font-bold" style={{color:'#005F87'}}>{calcResult.avg}</p>
+                                                            <p className="text-xs" style={{color:'#565A5C'}}>lbs</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="rounded-lg p-4" style={{background:'rgba(0,95,135,0.05)'}}>
+                                                        <p className="text-sm font-semibold mb-2" style={{color:'#005F87'}}>Percentage Chart (based on {calcResult.avg} lbs)</p>
+                                                        <div className="grid grid-cols-5 gap-2 text-center text-sm">
+                                                            {[100,95,90,85,80,75,70,65,60,50].map(pct => (
+                                                                <div key={pct} className="rounded p-2" style={{background: pct >= 90 ? 'rgba(239,68,68,0.1)' : pct >= 75 ? 'rgba(251,191,36,0.1)' : 'rgba(0,163,163,0.1)'}}>
+                                                                    <p className="font-bold text-xs" style={{color:'#565A5C'}}>{pct}%</p>
+                                                                    <p className="font-bold" style={{color:'#005F87'}}>{Math.round(calcResult.avg * pct / 100 / 5) * 5}</p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-4">
+                                                        <button onClick={() => {
+                                                            const newData = {...data};
+                                                            if (!newData.oneRepMaxes) newData.oneRepMaxes = {...ONE_RM};
+                                                            const prev = newData.oneRepMaxes[calcLift];
+                                                            newData.oneRepMaxes[calcLift] = calcResult.avg;
+                                                            setData(newData);
+                                                            alert(calcLift + ' 1RM updated: ' + prev + ' → ' + calcResult.avg + ' lbs\n\nNote: This updates your tracked 1RM. The program weights are based on the ONE_RM constant in the code — to recalculate all program weights, update ONE_RM in the source file and redeploy.');
+                                                        }} className="flex-1 py-3 rounded-lg text-white font-bold" style={{background:'#00A3A3'}}>
+                                                            Update {calcLift} 1RM → {calcResult.avg} lbs
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="glass rounded-xl shadow-lg p-6">
+                                            <h3 className="text-lg font-bold mb-4" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>Current Working 1RMs</h3>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                {Object.entries(data.oneRepMaxes || ONE_RM).map(([lift, max]) => {
+                                                    const goal = {Squat:365,'Bench Press':255,'Trap Bar Deadlift':405,'Power Clean':225}[lift];
+                                                    const pct = goal ? Math.round(max / goal * 100) : 0;
+                                                    return (
+                                                        <div key={lift} className="rounded-lg p-4 border" style={{borderColor:'rgba(0,95,135,0.15)'}}>
+                                                            <p className="text-xs font-semibold mb-1" style={{color:'#565A5C'}}>{lift}</p>
+                                                            <p className="text-2xl font-bold" style={{color:'#005F87'}}>{max} <span className="text-sm font-normal" style={{color:'#565A5C'}}>lbs</span></p>
+                                                            {goal && (
+                                                                <div className="mt-2">
+                                                                    <div className="flex justify-between text-xs" style={{color:'#565A5C'}}><span>{pct}%</span><span>Goal: {goal}</span></div>
+                                                                    <div className="w-full rounded-full h-2 mt-1" style={{background:'rgba(0,95,135,0.1)'}}>
+                                                                        <div className="rounded-full h-2" style={{width: Math.min(pct,100)+'%', background: pct >= 100 ? '#00A3A3' : '#005F87'}}></div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <p className="text-xs mt-4" style={{color:'#565A5C'}}>Retest every 8-12 weeks. Update ONE_RM in source code to recalculate all programmed weights across the 56-week plan.</p>
+                                        </div>
                                     </div>
                                 )}
                             </div>
