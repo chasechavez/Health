@@ -261,11 +261,11 @@
                     8, 9, 9, 5,  // Weeks 21-24: Hypertrophy 2
                     6, 7, 8, 4,  // Weeks 25-28: Strength 2
                     5, 6, 6, 3,  // Weeks 29-32: Power 2
-                    6, 7, 7, 4,  // Weeks 33-36: Mile Specific
+                    6, 7, 7, 4,  // Weeks 33-36: Aerobic Block
                     7, 7, 8, 4,  // Weeks 37-40: Strength-Power Integration
                     5, 5, 4, 3,  // Weeks 41-44: Peaking 1
                     5, 5, 4, 3,  // Weeks 45-48: Speed/Power Peaking
-                    4, 4, 3, 2,  // Weeks 49-52: Mile Peaking
+                    4, 4, 3, 2,  // Weeks 49-52: Aerobic Maintenance
                     3, 2, 2, 1   // Weeks 53-56: Testing
                 ];
 
@@ -278,11 +278,11 @@
                     7, 7, 8, 6,  // Weeks 21-24: Hypertrophy 2
                     8, 9, 9, 7,  // Weeks 25-28: Strength 2
                     9, 9, 10, 7, // Weeks 29-32: Power 2
-                    7, 7, 8, 6,  // Weeks 33-36: Mile Specific
+                    7, 7, 8, 6,  // Weeks 33-36: Aerobic Block
                     9, 9, 9, 7,  // Weeks 37-40: Strength-Power Integration
                     9, 10, 10, 8,// Weeks 41-44: Peaking 1
                     9, 10, 10, 8,// Weeks 45-48: Speed/Power Peaking
-                    7, 7, 6, 5,  // Weeks 49-52: Mile Peaking
+                    7, 7, 6, 5,  // Weeks 49-52: Aerobic Maintenance
                     10, 10, 10, 10// Weeks 53-56: Testing
                 ];
 
@@ -298,11 +298,11 @@
                     { name: "Hypertrophy Block 2", weeks: 4, focus: "Advanced hypertrophy", trainingEmphasis: "Functional Hypertrophy" },
                     { name: "Strength Block 2", weeks: 4, focus: "Competition-specific loads", trainingEmphasis: "Advanced Strength" },
                     { name: "Power Block 2", weeks: 4, focus: "Peak power output", trainingEmphasis: "Competition Power" },
-                    { name: "Mile Specific Block", weeks: 4, focus: "Mile-specific speed development", trainingEmphasis: "Sub-5:15 Mile Prep" },
+                    { name: "Aerobic Block", weeks: 4, focus: "Aerobic maintenance + strength-power priority", trainingEmphasis: "General Aerobic Fitness" },
                     { name: "Strength-Power Integration", weeks: 4, focus: "Integrate strength with power", trainingEmphasis: "Complex Training" },
                     { name: "Peaking Phase 1", weeks: 4, focus: "Peak strength abilities", trainingEmphasis: "Strength Peak" },
-                    { name: "Speed/Power Peaking", weeks: 4, focus: "Peak VJ and 30yd dash", trainingEmphasis: "Explosive Peak" },
-                    { name: "Mile Peaking", weeks: 4, focus: "Final mile preparation", trainingEmphasis: "Mile Time Trial" },
+                    { name: "Speed/Power Peaking", weeks: 4, focus: "Peak VJ and 40yd dash", trainingEmphasis: "Explosive Peak" },
+                    { name: "Aerobic Maintenance", weeks: 4, focus: "Running base maintenance during lift peak", trainingEmphasis: "Easy Aerobic Running" },
                     { name: "Testing & Realization", weeks: 4, focus: "Test all goals", trainingEmphasis: "Max Out" }
                 ];
 
@@ -371,7 +371,7 @@
                                     exercises: [{ name: ov.thu.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: ov.thu.notes, mileage: ov.thu.mileage, isRun: true }],
                                     notes: weekNum === 17 ? "🏁 RACE DAY — Apr 30 5K — Sub-21:00!" : "Easy only — 8:30-9:00/mi, no pushing"
                                 };
-                                // Saturday NOT overridden — keeps plyos + sprint mechanics for 30yd dash goal
+                                // Saturday NOT overridden — keeps plyos + sprint mechanics for 40yd dash goal
                             }
 
                             weekNum++;
@@ -489,7 +489,7 @@
                             P("Alt Bounds Sprint Transfer 15m",4,"~20 contacts",80,"Horizontal reactive → sprint transition · 15m distance")],
                         32:[P("CMJ",2,"3",12,"Light"),
                             PT("CMJ (hands on hips)",3,"3",18,"TEST #7 — Expect BEST CMJ to date · money meso payoff")],
-                        // Meso 8 — Mile Specific (maintenance hold)
+                        // Meso 8 — Aerobic Block (maintenance hold)
                         33:[P("Depth Jump (hold Meso 7 height)",3,"3",18,"Maintenance only · hold reactive gains"),
                             P("CMJ (hands on hips)",3,"4",24,"Reduced volume · maintain neural pattern")],
                         34:[P("Depth Jump (hold height)",3,"4",24,"Slight volume increase"),
@@ -497,7 +497,7 @@
                         35:[P("Depth Jump (hold height)",3,"4",24,"Consistent maintenance"),
                             P("CMJ (hands on hips)",4,"4",32,"Consistent")],
                         36:[P("CMJ",2,"3",12,"Light"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #8 — Confirm VJ hasn't regressed during mile focus")],
+                            PT("CMJ (hands on hips)",3,"3",18,"TEST #8 — Confirm VJ hasn't regressed during aerobic block")],
                         // Meso 9 — Strength-Power Integration (2nd peak conversion)
                         37:[P("Depth Jump (push height via GCT)",4,"4",32,"May reach 40-50cm if GCT allows · max 60cm cap"),
                             P("CMJ Max Effort",5,"4",40,"Every rep = max intent"),
@@ -528,11 +528,11 @@
                         47:[P("Depth Jump",2,"3",12,"Reduced · approaching final taper"),
                             P("CMJ (hands on hips)",3,"3",18,"Minimal but max intent")],
                         48:[PT("CMJ (hands on hips)",3,"3",18,"TEST #11 — Final taper benchmark · within 10% of 18\"?")],
-                        // Meso 12 — Mile Peaking (VJ maintenance, mile priority)
+                        // Meso 12 — Aerobic Maintenance (VJ maintenance, running base)
                         49:[P("CMJ (hands on hips)",3,"3",18,"Maintenance only · no depth jumps (running freshness)")],
                         50:[P("CMJ (hands on hips)",3,"3",18,"Hold neural pattern")],
                         51:[P("CMJ (hands on hips)",2,"3",12,"Minimal")],
-                        52:[PT("CMJ (hands on hips)",3,"3",18,"TEST #12 — Confirm no VJ regression during mile taper")],
+                        52:[PT("CMJ (hands on hips)",3,"3",18,"TEST #12 — Confirm no VJ regression during aerobic maintenance")],
                         // Meso 13 — Testing & Realization
                         53:[P("CMJ (hands on hips)",3,"3",18,"Final sharpening · should feel explosive"),
                             P("Depth Jump",2,"3",12,"Last depth jumps of the program")],
@@ -599,7 +599,7 @@
                     // Meso 8: Reduced PAP — CMJ 2×3 post-squat
                     if (mesoIndex === 8) {
                         return {preLift:[], postLift:[
-                            P("PAP: CMJ (after top squat set)",2,"3",12,"Maintenance · mile phase priority")
+                            P("PAP: CMJ (after top squat set)",2,"3",12,"Maintenance · aerobic phase priority")
                         ]};
                     }
                     // Meso 9: Advanced PAP — squat top set → DEPTH JUMP 3×3
@@ -637,52 +637,52 @@
                         // 2 Hypertrophy 1 — acceleration development
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
                          {name: "Wall Drive Drill", sets: 3, reps: "10/leg", weight: "", percent: "", completed: false, notes: "Sprint mechanic primer", isSprint: true},
-                         {name: "30yd Sprint (standing start)", sets: 4, reps: "30yd", weight: "", percent: "", completed: false, notes: "Full recovery 2-3min · TIME EACH REP", isSprint: true},
+                         {name: "40yd Sprint (standing start)", sets: 4, reps: "40yd", weight: "", percent: "", completed: false, notes: "Full recovery 2-3min · TIME EACH REP", isSprint: true},
                          {name: "20yd Build", sets: 3, reps: "20yd", weight: "", percent: "", completed: false, notes: "0-50-75-90% progressive acceleration", isSprint: true}],
                         // 3 Strength 1 — acceleration + first step power
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "3-Point Stance Sprint", sets: 5, reps: "30yd", weight: "", percent: "", completed: false, notes: "Full recovery 3min · 30yd dash position · TIME EACH", isSprint: true},
+                         {name: "3-Point Stance Sprint", sets: 5, reps: "40yd", weight: "", percent: "", completed: false, notes: "Full recovery 3min · 40yd dash position · TIME EACH", isSprint: true},
                          {name: "Resisted Sprint (sled ~10%BW)", sets: 4, reps: "15yd", weight: "20", percent: "", completed: false, notes: "Overload first-step power · Derek Hansen method", isSprint: true},
                          {name: "Flying 10yd", sets: 3, reps: "10yd", weight: "", percent: "", completed: false, notes: "15yd roll-in → max velocity 10yd · top speed work", isSprint: true}],
                         // 4 Power 1 — speed-strength, reactive starts
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "Jump → 30yd Sprint", sets: 5, reps: "30yd", weight: "", percent: "", completed: false, notes: "CMJ then immediate 30yd — reactive to sprint · PAP · TIME", isSprint: true},
+                         {name: "Jump → 40yd Sprint", sets: 5, reps: "40yd", weight: "", percent: "", completed: false, notes: "CMJ then immediate 40yd — reactive to sprint · PAP · TIME", isSprint: true},
                          {name: "Resisted Sprint (sled)", sets: 3, reps: "20yd", weight: "25", percent: "", completed: false, notes: "Heavy resist → overspeed sequence", isSprint: true},
                          {name: "Overspeed Assisted Sprint", sets: 3, reps: "20yd", weight: "", percent: "", completed: false, notes: "Slight downhill or band-assisted · 105% max speed", isSprint: true}],
                         // 5 Hypertrophy 2 — reload, rebuild sprint volume
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
                          {name: "A-Skip + B-Skip", sets: 3, reps: "20yd each", weight: "", percent: "", completed: false, notes: "Refresh mechanics", isSprint: true},
-                         {name: "30yd Sprint (3-point)", sets: 4, reps: "30yd", weight: "", percent: "", completed: false, notes: "Mechanics review + TIME · full recovery", isSprint: true},
+                         {name: "40yd Sprint (3-point)", sets: 4, reps: "40yd", weight: "", percent: "", completed: false, notes: "Mechanics review + TIME · full recovery", isSprint: true},
                          {name: "20yd Build + Fly", sets: 3, reps: "40yd", weight: "", percent: "", completed: false, notes: "20yd build into 20yd fly", isSprint: true}],
                         // 6 Strength 2 — strength-speed transfer
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "Complex: Heavy Trap Bar → 30yd Sprint", sets: 4, reps: "2+30yd", weight: "", percent: "", completed: false, notes: "Post-activation potentiation · 30s between lift and sprint · TIME sprint", isSprint: true},
-                         {name: "3-Point Stance Sprint", sets: 4, reps: "30yd", weight: "", percent: "", completed: false, notes: "Sub-max — 95% · TIME each · 3min recovery", isSprint: true}],
-                        // 7 Power 2 — peak sprint volume + sub-4.0 targeting
+                         {name: "Complex: Heavy Trap Bar → 40yd Sprint", sets: 4, reps: "2+40yd", weight: "", percent: "", completed: false, notes: "Post-activation potentiation · 30s between lift and sprint · TIME sprint", isSprint: true},
+                         {name: "3-Point Stance Sprint", sets: 4, reps: "40yd", weight: "", percent: "", completed: false, notes: "Sub-max — 95% · TIME each · 3min recovery", isSprint: true}],
+                        // 7 Power 2 — peak sprint volume + sub-5.0 targeting
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "30yd Sprint — MAX EFFORT", sets: 6, reps: "30yd", weight: "", percent: "", completed: false, notes: "TIME EVERY REP · 3-point start · 4min full recovery · goal sub-4.0", isSprint: true},
-                         {name: "Resisted 30yd + Free 30yd", sets: 3, reps: "30yd x2", weight: "", percent: "", completed: false, notes: "Contrast set: resist → free sprint for overspeed effect", isSprint: true}],
-                        // 8 Mile Specific — maintain sprint, reduce volume
+                         {name: "40yd Sprint — MAX EFFORT", sets: 6, reps: "40yd", weight: "", percent: "", completed: false, notes: "TIME EVERY REP · 3-point start · 4min full recovery · goal sub-5.0", isSprint: true},
+                         {name: "Resisted 40yd + Free 40yd", sets: 3, reps: "40yd x2", weight: "", percent: "", completed: false, notes: "Contrast set: resist → free sprint for overspeed effect", isSprint: true}],
+                        // 8 Aerobic Block — maintain sprint, reduce volume
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "30yd Sprint (standing)", sets: 3, reps: "30yd", weight: "", percent: "", completed: false, notes: "Maintenance · 90% effort · TIME", isSprint: true}],
+                         {name: "40yd Sprint (standing)", sets: 3, reps: "40yd", weight: "", percent: "", completed: false, notes: "Maintenance · 90% effort · TIME", isSprint: true}],
                         // 9 Strength-Power Integration — complex sprint
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "Complex: Power Clean → 30yd Sprint", sets: 5, reps: "2+30yd", weight: "", percent: "", completed: false, notes: "Olympic lift → explosive sprint · PAP · TIME sprint", isSprint: true},
+                         {name: "Complex: Power Clean → 40yd Sprint", sets: 5, reps: "2+40yd", weight: "", percent: "", completed: false, notes: "Olympic lift → explosive sprint · PAP · TIME sprint", isSprint: true},
                          {name: "Flying 20yd", sets: 4, reps: "20yd", weight: "", percent: "", completed: false, notes: "20yd build-in → 20yd timed · max velocity training", isSprint: true}],
-                        // 10 Peaking 1 — sub-4.0 focus begins
+                        // 10 Peaking 1 — sub-5.0 focus begins
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "30yd Sprint — PEAK EFFORT", sets: 5, reps: "30yd", weight: "", percent: "", completed: false, notes: "TIME EVERY REP · 4min rest · goal: sub-4.2 this week", isSprint: true},
+                         {name: "40yd Sprint — PEAK EFFORT", sets: 5, reps: "40yd", weight: "", percent: "", completed: false, notes: "TIME EVERY REP · 4min rest · goal: sub-5.2 this week", isSprint: true},
                          {name: "A-Skip + Wall Drive Primer", sets: 2, reps: "20yd each", weight: "", percent: "", completed: false, notes: "Mechanic freshness before sprints", isSprint: true}],
                         // 11 Speed/Power Peaking — competition-ready sprints
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "30yd Sprint — COMPETITION PREP", sets: 5, reps: "30yd", weight: "", percent: "", completed: false, notes: "TIME ALL · full 5min rest · target sub-4.0 · log each time", isSprint: true},
+                         {name: "40yd Sprint — COMPETITION PREP", sets: 5, reps: "40yd", weight: "", percent: "", completed: false, notes: "TIME ALL · full 5min rest · target sub-5.0 · log each time", isSprint: true},
                          {name: "3-Point Start Drill", sets: 3, reps: "10yd", weight: "", percent: "", completed: false, notes: "Perfect start mechanics · explosive first step", isSprint: true}],
-                        // 12 Mile Peaking — minimal sprints, stay sharp
+                        // 12 Aerobic Maintenance — minimal sprints, stay sharp
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "30yd Sprint", sets: 3, reps: "30yd", weight: "", percent: "", completed: false, notes: "Sharpening only · 90% · rest 5min · TIME", isSprint: true}],
+                         {name: "40yd Sprint", sets: 3, reps: "40yd", weight: "", percent: "", completed: false, notes: "Sharpening only · 90% · rest 5min · TIME", isSprint: true}],
                         // 13 Testing — test day
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
-                         {name: "🏆 30-YARD DASH TEST", sets: 3, reps: "30yd", weight: "", percent: "", completed: false, notes: "Goal: Sub-4.0 · 3-point start · 10min rest between · TIME ALL 3", isSprint: true}],
+                         {name: "🏆 40-YARD DASH TEST", sets: 3, reps: "40yd", weight: "", percent: "", completed: false, notes: "Goal: Sub-5.0 · 3-point start · 10min rest between · TIME ALL 3", isSprint: true}],
                     ];
                     return phases[mesoIndex] || [];
                 }
@@ -758,17 +758,17 @@
                         cleanPct = weekNum >= 55 ? 0.87 : 0.82;
                         benchSets = mainSets; benchReps = mainReps;
                     } else {
-                        // mesoIndex 8 (Mile Specific) & 9 (Strength-Power Integration)
-                        const isMileMaint = mesoIndex === 8;
-                        mainReps = isDeload ? "3" : isMileMaint ? "3-5" : "2-3";
-                        mainSets = isDeload ? 3 : isMileMaint ? 3 : 4;
-                        auxReps = isMileMaint ? "6-8" : "4-6"; auxSets = 3;
-                        squatPct = isDeload ? 0.78 : isMileMaint ? (0.72 + weekInBlock * 0.02) : (0.85 + weekInBlock * 0.02);
-                        benchPct = isDeload ? 0.75 : isMileMaint ? (0.70 + weekInBlock * 0.02) : (0.82 + weekInBlock * 0.02);
-                        trapPct  = isDeload ? 0.80 : isMileMaint ? (0.75 + weekInBlock * 0.02) : (0.87 + weekInBlock * 0.02);
-                        cleanPct = isMileMaint ? 0.68 : 0.75;
+                        // mesoIndex 8 (Aerobic Block) & 9 (Strength-Power Integration)
+                        const isAerobicMaint = mesoIndex === 8;
+                        mainReps = isDeload ? "3" : isAerobicMaint ? "3-5" : "2-3";
+                        mainSets = isDeload ? 3 : isAerobicMaint ? 3 : 4;
+                        auxReps = isAerobicMaint ? "6-8" : "4-6"; auxSets = 3;
+                        squatPct = isDeload ? 0.78 : isAerobicMaint ? (0.72 + weekInBlock * 0.02) : (0.85 + weekInBlock * 0.02);
+                        benchPct = isDeload ? 0.75 : isAerobicMaint ? (0.70 + weekInBlock * 0.02) : (0.82 + weekInBlock * 0.02);
+                        trapPct  = isDeload ? 0.80 : isAerobicMaint ? (0.75 + weekInBlock * 0.02) : (0.87 + weekInBlock * 0.02);
+                        cleanPct = isAerobicMaint ? 0.68 : 0.75;
                         benchSets = mainSets;
-                        benchReps = isDeload ? "4" : isMileMaint ? "5-6" : "3-4";
+                        benchReps = isDeload ? "4" : isAerobicMaint ? "5-6" : "3-4";
                     }
 
                     // Cap power clean at 87% — technique ceiling (Chris Pedulla / Tommy Moffitt principle)
@@ -928,7 +928,7 @@
 
                     // ── RUNNING PROGRAMMING ──────────────────────────────────────────────────
                     // Weeks 1-17: handled by 5K overlay (fiveKOverlay) or base running
-                    // Weeks 18+: mile-specific periodized running (mileRunPlan)
+                    // Weeks 18+: general aerobic running — base rebuild → tempo/VO2 → maintenance
                     const runMileage1 = mesoIndex === 0 ? (isRecovery ? 2 : 3) : mesoIndex <= 5 ? 4 : 5;
                     const runMileage2 = mesoIndex === 0 ? (isRecovery ? 1.5 : 2.5) : mesoIndex <= 5 ? 3 : 4;
 
@@ -940,11 +940,11 @@
                         tueRun = {name: runProtocol, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Pace discipline", mileage: runMileage1, isRun: true};
                         thuRun = {name: "Easy 20-30min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Recovery — 8:30-9:00/mi", mileage: runMileage2, isRun: true};
                     } else if (weekNum <= 24) {
-                        // Weeks 18-24: Base rebuild post-5K + aerobic development for mile
+                        // Weeks 18-24: Base rebuild post-5K — aerobic development
                         const wk = weekNum - 17; // 1-7
                         const tempoMiles = Math.min(2 + Math.floor(wk / 2), 4);
-                        tueRun = {name: "Tempo " + (20 + wk * 2) + "min @ 7:20-7:30/mi", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Aerobic rebuild · controlled effort · mile base phase", mileage: tempoMiles, isRun: true};
-                        thuRun = {name: "Easy 25-30min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy 8:30-9:00/mi · strides at mile pace effort", mileage: 3, isRun: true};
+                        tueRun = {name: "Tempo " + (20 + wk * 2) + "min @ 7:20-7:30/mi", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Aerobic rebuild · controlled effort · post-5K base phase", mileage: tempoMiles, isRun: true};
+                        thuRun = {name: "Easy 25-30min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy 8:30-9:00/mi · strides at 5K pace effort", mileage: 3, isRun: true};
                     } else if (weekNum <= 32) {
                         // Weeks 25-32: VO2max development — 800m-1200m intervals
                         const wk = weekNum - 24;
@@ -958,62 +958,62 @@
                         }
                         thuRun = {name: "Easy 30min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Recovery — 8:30-9:00/mi only", mileage: 3.5, isRun: true};
                     } else if (weekNum <= 40) {
-                        // Weeks 33-40: Mile-specific intervals — 400m-800m at goal pace and faster
+                        // Weeks 33-40: General aerobic — tempo, threshold, easy long (no goal-specific race prep)
                         const wk = weekNum - 32;
                         const isRunDeload = wk === 4 || wk === 8;
                         if (isRunDeload) {
-                            tueRun = {name: "4x400m @ 5:10/mi (2min rest)", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Mile-specific deload — keep sharpness, low volume", mileage: 2.5, isRun: true};
+                            tueRun = {name: "Easy 25min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Deload — easy aerobic · strides to keep legs fresh", mileage: 2.5, isRun: true};
                         } else {
                             const sessions = [
-                                {name: "6x400m @ 5:10/mi (90s rest)", mileage: 3, notes: "Mile pace intervals · Greg McMillan pacing"},
-                                {name: "4x600m @ 5:00/mi (2min rest)", mileage: 3, notes: "Slightly faster than goal · build sub-5:15 capacity"},
-                                {name: "3x800m @ 5:10/mi + 4x200m @ 4:50/mi", mileage: 3.5, notes: "Mixed: threshold + speed · Brad Hudson adaptive method"},
-                                {name: "8x400m @ 5:05/mi (75s rest)", mileage: 3.5, notes: "Volume 400s · short rest builds lactate tolerance"},
-                                {name: "5x600m @ 5:00/mi (2min rest)", mileage: 3.5, notes: "Race-specific speed endurance"},
-                                {name: "2x(4x400m) @ 5:00/mi (60s/3min rest)", mileage: 4, notes: "Set training · race simulation with recovery"}
+                                {name: "Tempo 25min @ 7:20-7:30/mi", mileage: 3.5, notes: "Comfortably hard · threshold effort · aerobic development"},
+                                {name: "Easy 35min + 6x100m strides", mileage: 4, notes: "Conversational easy · strides end on turnover, not speed"},
+                                {name: "Tempo 30min @ 7:15-7:25/mi", mileage: 4, notes: "Threshold work · controlled breathing · one-word sentences"},
+                                {name: "Easy 40min steady", mileage: 4.5, notes: "Aerobic base · 8:00-8:30/mi · keep HR conversational"},
+                                {name: "Tempo 20min + 4x200m strides", mileage: 3.5, notes: "Threshold + neural sharpness · strides relaxed and fast"},
+                                {name: "Easy 45min long run", mileage: 5, notes: "Weekly long-ish · aerobic volume · stay easy"}
                             ];
                             const s = sessions[(wk-1) % sessions.length];
                             tueRun = {name: s.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: s.notes, mileage: s.mileage, isRun: true};
                         }
-                        thuRun = {name: "Easy 25min + 6x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy pace · strides at sub-5:00/mi effort", mileage: 3, isRun: true};
+                        thuRun = {name: "Easy 25min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy recovery · strides for neuromuscular freshness", mileage: 3, isRun: true};
                     } else if (weekNum <= 48) {
-                        // Weeks 41-48: Sharpening — 200m-400m fast, race pace work
+                        // Weeks 41-48: Peaking phases — reduced running to protect strength/power peak
                         const wk = weekNum - 40;
                         const isRunDeload = wk === 4 || wk === 8;
                         if (isRunDeload) {
-                            tueRun = {name: "3x400m @ 5:00/mi (2min rest)", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Sharpening deload — fast but low volume", mileage: 2, isRun: true};
+                            tueRun = {name: "Easy 20min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Deload + peak phase · keep running minimal", mileage: 2, isRun: true};
                         } else {
                             const sessions = [
-                                {name: "8x200m @ 4:40/mi (90s rest)", mileage: 2.5, notes: "Speed sharpening — faster than goal pace"},
-                                {name: "1200m + 800m + 400m @ 5:00/mi (3min rest)", mileage: 3, notes: "Descending ladder · race simulation · Canova method"},
-                                {name: "6x400m @ 4:55/mi (2min rest)", mileage: 3, notes: "Faster than goal — build confidence at sub-5:00"},
-                                {name: "2x800m @ 5:05/mi + 6x200m @ 4:35/mi", mileage: 3, notes: "Mixed session — threshold + top-end speed"},
-                                {name: "4x400m @ 4:50/mi (2:30 rest)", mileage: 2.5, notes: "Race pace+++ · neuromuscular priming"},
-                                {name: "1 Mile Time Trial (all-out)", mileage: 2.5, notes: "TEST — full warm-up · race pace · track preferred"}
+                                {name: "Easy 25min + 4x100m strides", mileage: 2.5, notes: "Easy aerobic · strides end feeling springy"},
+                                {name: "Easy 30min steady", mileage: 3, notes: "Conversational pace · protect CNS for peak lifts"},
+                                {name: "Easy 25min + 6x100m strides", mileage: 3, notes: "Strides for neural freshness · don't push"},
+                                {name: "Tempo 15min @ 7:25/mi (optional)", mileage: 2.5, notes: "Short threshold only if legs feel good · skip if fatigued"},
+                                {name: "Easy 30min + 4x100m strides", mileage: 3, notes: "Easy aerobic + relaxed strides"},
+                                {name: "Easy 25min steady", mileage: 2.5, notes: "Keep it easy · lifting peak is priority"}
                             ];
                             const s = sessions[(wk-1) % sessions.length];
                             tueRun = {name: s.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: s.notes, mileage: s.mileage, isRun: true};
                         }
-                        thuRun = {name: "Easy 20min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy · keep legs fresh for speed work", mileage: 2.5, isRun: true};
+                        thuRun = {name: "Easy 20min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy · keep legs fresh for peak lifting/sprint work", mileage: 2.5, isRun: true};
                     } else if (weekNum <= 52) {
-                        // Weeks 49-52: Mile Peaking — reduced volume, race-pace sharpening
+                        // Weeks 49-52: Aerobic Maintenance — easy running, hold aerobic base
                         const wk = weekNum - 48;
                         const sessions = [
-                            {name: "4x400m @ 5:00/mi (2:30 rest)", mileage: 2, notes: "Goal pace — smooth and controlled"},
-                            {name: "2x800m @ 5:10/mi + 4x200m @ 4:40/mi", mileage: 2.5, notes: "Combo: race pace + kick speed"},
-                            {name: "3x400m @ 4:55/mi (3min rest)", mileage: 2, notes: "Near-peak sharpening — feel fast, stay relaxed"},
-                            {name: "2x400m @ 5:00/mi + strides", mileage: 1.5, notes: "Final tune-up — legs should feel springy and light"}
+                            {name: "Easy 30min + 4x100m strides", mileage: 3, notes: "Easy aerobic · strides for turnover"},
+                            {name: "Easy 35min steady", mileage: 3.5, notes: "Maintain aerobic base · conversational"},
+                            {name: "Easy 25min + 4x100m strides", mileage: 2.5, notes: "Light maintenance · legs fresh for testing"},
+                            {name: "Easy 20min + strides", mileage: 2, notes: "Final taper week · keep it truly easy"}
                         ];
                         const s = sessions[(wk-1) % sessions.length];
                         tueRun = {name: s.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: s.notes, mileage: s.mileage, isRun: true};
                         thuRun = {name: "Easy 15-20min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Keep it truly easy · 9:00/mi", mileage: 2, isRun: true};
                     } else {
-                        // Weeks 53-56: Testing & Realization
+                        // Weeks 53-56: Testing & Realization — minimal running, prioritize CNS recovery
                         const wk = weekNum - 52;
                         if (wk <= 2) {
-                            tueRun = {name: "3x400m @ goal pace + strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Stay sharp — race is coming · don't go all out", mileage: 2, isRun: true};
+                            tueRun = {name: "Easy 20min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Testing approach · easy + strides for neural freshness", mileage: 2, isRun: true};
                         } else if (wk === 3) {
-                            tueRun = {name: "🏆 MILE TIME TRIAL — Sub-5:15 Goal!", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "400m: 1:18 | 800m: 2:37 | 1200m: 3:56 | FINISH: 5:14 · SEND IT", mileage: 2, isRun: true};
+                            tueRun = {name: "Easy 15min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Testing week · only the Daily Mile matters today", mileage: 1.5, isRun: true};
                         } else {
                             tueRun = {name: "Easy 20min cooldown week", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Season complete — recovery", mileage: 2, isRun: true};
                         }
@@ -1048,17 +1048,17 @@
                         mesoIndex === 1 ? "Plyos + Sprint Mechanics" :
                         mesoIndex <= 3 ? "Plyos + Acceleration" :
                         mesoIndex <= 5 ? "Plyos + Speed-Strength" :
-                        mesoIndex <= 7 ? "Plyos + 30yd Training" :
+                        mesoIndex <= 7 ? "Plyos + 40yd Training" :
                         mesoIndex === 9 ? "Plyos + Complex Sprint" :
                         mesoIndex >= 10 ? "Plyos + Peak Sprint" : "Plyos + Sprint Work";
                     const saturdayNotes = (satHasPlyoTest ? "📊 CMJ TEST DAY · " : "") +
-                        (mesoIndex >= 7 ? "⚡ Sub-4.0 30yd Dash — TIME every rep · full CNS recovery" :
+                        (mesoIndex >= 7 ? "⚡ Sub-5.0 40yd Dash — TIME every rep · full CNS recovery" :
                         mesoIndex >= 4 ? "Plyos FIRST → then sprint work · speed-strength" :
                         "Plyos FIRST → then sprint mechanics · Dan Pfaff / Derek Hansen");
 
                     return [
                         { name: "Squat Day" + (mondayActivation.preLift.length || mondayActivation.postLift.length ? " + Activation" : ""), day: "Monday", exercises: mondayExercises, notes: mondayNotes },
-                        { name: "Quality Run", day: "Tuesday", exercises: [tueRun], notes: weekNum <= 17 ? "5K Prep Running" : weekNum <= 24 ? "Base Rebuild" : weekNum <= 32 ? "VO2max Development" : weekNum <= 40 ? "Mile-Specific Intervals" : weekNum <= 48 ? "Speed Sharpening" : weekNum <= 52 ? "Mile Peaking" : "Testing" },
+                        { name: "Quality Run", day: "Tuesday", exercises: [tueRun], notes: weekNum <= 17 ? "5K Prep Running" : weekNum <= 24 ? "Base Rebuild" : weekNum <= 32 ? "VO2max Development" : weekNum <= 40 ? "Aerobic Block" : weekNum <= 48 ? "Easy Running (Peak Phase)" : weekNum <= 52 ? "Aerobic Maintenance" : "Testing" },
                         { name: "Upper Body + Shoulders", day: "Wednesday", exercises: session2, notes: "Press + Pull + Shoulder Health" },
                         { name: "Easy Run", day: "Thursday", exercises: [thuRun], notes: "Recovery run — easy effort only" },
                         { name: "Hinge Day + Volume", day: "Friday", exercises: session3, notes: "Trap Bar DL + RDL + Bench Volume" },
@@ -1070,13 +1070,12 @@
                     currentWeekIndex: 0, oneRepMaxes: {...ONE_RM},
                     goals: [
                         {name: "5K Race", target: 21, current: 23, unit: "min", icon: "5K", higherIsBetter: false, targetText: "Sub-21:00 (Apr 30)"},
-                        {name: "Mile Time", target: 315, current: 360, unit: "sec", icon: "M", higherIsBetter: false, targetText: "5:15"},
                         {name: "Squat", target: 365, current: 293, unit: "lbs", icon: "SQ", higherIsBetter: true},
-                        {name: "Trap Bar DL", target: 405, current: 405, unit: "lbs", icon: "DL", higherIsBetter: true},
-                        {name: "Bench Press", target: 255, current: 213, unit: "lbs", icon: "BP", higherIsBetter: true},
+                        {name: "Trap Bar DL", target: 450, current: 405, unit: "lbs", icon: "DL", higherIsBetter: true},
+                        {name: "Bench Press", target: 275, current: 213, unit: "lbs", icon: "BP", higherIsBetter: true},
                         {name: "Power Clean", target: 225, current: 165, unit: "lbs", icon: "PC", higherIsBetter: true},
                         {name: "Vertical Jump", target: 18, current: 14, unit: "in", icon: "VJ", higherIsBetter: true},
-                        {name: "30yd Dash", target: 4.0, current: 4.5, unit: "sec", icon: "SP", higherIsBetter: false}
+                        {name: "40yd Dash", target: 5.0, current: 5.3, unit: "sec", icon: "SP", higherIsBetter: false}
                     ],
                     weeks: generateAllWeeks(), lastUpdated: Date.now()
                 });
@@ -1155,10 +1154,10 @@
                                 mesoIndex === 1 ? "Sprint Mechanics (Dan Pfaff)" :
                                 mesoIndex <= 3 ? "Acceleration Development" :
                                 mesoIndex <= 5 ? "Speed-Strength Sprints" :
-                                mesoIndex <= 7 ? "30yd Dash Training" :
+                                mesoIndex <= 7 ? "40yd Dash Training" :
                                 mesoIndex === 9 ? "Complex Sprint (PAP)" :
-                                mesoIndex >= 10 ? "⚡ Peak Sprint — Sub-4.0 Prep" : "Sprint Work";
-                            const satNotes = mesoIndex >= 7 ? "⚡ Sub-4.0 30yd Dash — TIME every rep · 4-5min full CNS recovery between" :
+                                mesoIndex >= 10 ? "⚡ Peak Sprint — Sub-5.0 Prep" : "Sprint Work";
+                            const satNotes = mesoIndex >= 7 ? "⚡ Sub-5.0 40yd Dash — TIME every rep · 4-5min full CNS recovery between" :
                                 mesoIndex >= 4 ? "Speed-strength — reactive starts + acceleration" :
                                 "Sprint mechanics — Dan Pfaff / Derek Hansen principles";
                             week.sessions[5] = {
@@ -1177,7 +1176,7 @@
                 const migrateGoals = (savedData) => {
                     if (!savedData || !savedData.goals) return savedData;
                     // Remove Half Marathon
-                    savedData.goals = savedData.goals.filter(g => g.name !== "Half Marathon");
+                    savedData.goals = savedData.goals.filter(g => g.name !== "Half Marathon" && g.name !== "Mile Time");
                     // Add 5K Race if missing
                     const has5K = savedData.goals.some(g => g.name === "5K Race");
                     if (!has5K) {
@@ -1424,17 +1423,6 @@
                     const updateGoalTarget = (index, value) => {
                         const newData = {...data};
                         newData.goals[index].target = parseFloat(value) || 0;
-                        if (newData.goals[index].name === "Mile Time") {
-                            const totalSeconds = parseFloat(value) || 0;
-                            const mins = Math.floor(totalSeconds / 60);
-                            const secs = Math.round(totalSeconds % 60);
-                            newData.goals[index].targetText = `${mins}:${secs.toString().padStart(2, '0')}`;
-                        } else if (newData.goals[index].name === "Half Marathon") {
-                            const totalMins = parseFloat(value) || 0;
-                            const hours = Math.floor(totalMins / 60);
-                            const mins = Math.round(totalMins % 60);
-                            newData.goals[index].targetText = `${hours}:${mins.toString().padStart(2, '0')}`;
-                        }
                         setData(newData);
                     };
                     const toggleExerciseComplete = (exerciseIndex) => {
@@ -1604,19 +1592,19 @@
                                                                 <span className="font-bold text-blue-800" style={{color:'#004668'}}>Squat:</span> <span className="text-gray-700">365 lbs</span>
                                                             </div>
                                                             <div className="bg-white rounded-lg p-2 border border-blue-200">
-                                                                <span className="font-bold text-blue-800" style={{color:'#004668'}}>Trap Bar DL:</span> <span className="text-gray-700">405 lbs</span>
+                                                                <span className="font-bold text-blue-800" style={{color:'#004668'}}>Trap Bar DL:</span> <span className="text-gray-700">450 lbs</span>
                                                             </div>
                                                             <div className="bg-white rounded-lg p-2 border border-blue-200">
-                                                                <span className="font-bold text-blue-800" style={{color:'#004668'}}>Bench Press:</span> <span className="text-gray-700">255 lbs</span>
+                                                                <span className="font-bold text-blue-800" style={{color:'#004668'}}>Bench Press:</span> <span className="text-gray-700">275 lbs</span>
                                                             </div>
                                                             <div className="bg-white rounded-lg p-2 border border-blue-200">
                                                                 <span className="font-bold text-blue-800" style={{color:'#004668'}}>Vertical Jump:</span> <span className="text-gray-700">18 in</span>
                                                             </div>
                                                             <div className="bg-white rounded-lg p-2 border border-blue-200">
-                                                                <span className="font-bold text-blue-800" style={{color:'#004668'}}>30yd Dash:</span> <span className="text-gray-700">Sub-4.0 sec</span>
+                                                                <span className="font-bold text-blue-800" style={{color:'#004668'}}>40yd Dash:</span> <span className="text-gray-700">Sub-5.0 sec</span>
                                                             </div>
                                                             <div className="bg-white rounded-lg p-2 border border-blue-200">
-                                                                <span className="font-bold text-blue-800" style={{color:'#004668'}}>Mile:</span> <span className="text-gray-700">Sub-5:15</span>
+                                                                <span className="font-bold text-blue-800" style={{color:'#004668'}}>Power Clean:</span> <span className="text-gray-700">225 lbs</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2050,7 +2038,7 @@
                                             <h3 className="text-lg font-bold mb-4" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>Current Working 1RMs</h3>
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                                 {Object.entries(data.oneRepMaxes || ONE_RM).map(([lift, max]) => {
-                                                    const goal = {Squat:365,'Bench Press':255,'Trap Bar Deadlift':405,'Power Clean':225}[lift];
+                                                    const goal = {Squat:365,'Bench Press':275,'Trap Bar Deadlift':450,'Power Clean':225}[lift];
                                                     const pct = goal ? Math.round(max / goal * 100) : 0;
                                                     return (
                                                         <div key={lift} className="rounded-lg p-4 border" style={{borderColor:'rgba(0,95,135,0.15)'}}>
