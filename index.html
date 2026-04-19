@@ -261,11 +261,11 @@
                     8, 9, 9, 5,  // Weeks 21-24: Hypertrophy 2
                     6, 7, 8, 4,  // Weeks 25-28: Strength 2
                     5, 6, 6, 3,  // Weeks 29-32: Power 2
-                    6, 7, 7, 4,  // Weeks 33-36: Aerobic Block
+                    6, 7, 7, 4,  // Weeks 33-36: Job Transition Block
                     7, 7, 8, 4,  // Weeks 37-40: Strength-Power Integration
                     5, 5, 4, 3,  // Weeks 41-44: Peaking 1
                     5, 5, 4, 3,  // Weeks 45-48: Speed/Power Peaking
-                    4, 4, 3, 2,  // Weeks 49-52: Aerobic Maintenance
+                    4, 4, 3, 2,  // Weeks 49-52: Taper Block
                     3, 2, 2, 1   // Weeks 53-56: Testing
                 ];
 
@@ -278,16 +278,47 @@
                     7, 7, 8, 6,  // Weeks 21-24: Hypertrophy 2
                     8, 9, 9, 7,  // Weeks 25-28: Strength 2
                     9, 9, 10, 7, // Weeks 29-32: Power 2
-                    7, 7, 8, 6,  // Weeks 33-36: Aerobic Block
+                    7, 7, 8, 6,  // Weeks 33-36: Job Transition Block
                     9, 9, 9, 7,  // Weeks 37-40: Strength-Power Integration
                     9, 10, 10, 8,// Weeks 41-44: Peaking 1
                     9, 10, 10, 8,// Weeks 45-48: Speed/Power Peaking
-                    7, 7, 6, 5,  // Weeks 49-52: Aerobic Maintenance
+                    7, 7, 6, 5,  // Weeks 49-52: Taper Block
                     10, 10, 10, 10// Weeks 53-56: Testing
                 ];
 
                 // CURRENT tested 1RMs — NOT goal weights. Retest every 8-12 weeks to update.
                 const ONE_RM = { 'Squat': 293, 'Bench Press': 213, 'Trap Bar Deadlift': 405, 'Power Clean': 165 };
+
+                // ═══ E1RM CHECK-IN SCHEDULE ═══════════════════════════════════════════════
+                // Scheduled AMRAP sets every ~8 weeks to re-estimate 1RM via Epley formula.
+                // Phase A/B (weeks 1-26): multiple lifts per check-in week (4-day schedule).
+                // Phase C (weeks 27-56): staggered across 2 consecutive weeks to avoid
+                //   overloading any single 30-min session. Power Clean is never AMRAP'd
+                //   (technique-risky above 3 reps) — tested only at week 55.
+                // Week 50 is a "Primer Week" — light singles at 87-93% to rehearse max attempts.
+                // Week 55 is the final true 1RM test (already built into Meso 13 W3).
+                const E1RM_CHECK_WEEKS = {
+                    8:  ['Squat', 'Bench Press'],
+                    16: ['Squat', 'Bench Press', 'Trap Bar Deadlift'],
+                    24: ['Squat', 'Bench Press', 'Trap Bar Deadlift'],
+                    34: ['Squat'],
+                    35: ['Bench Press', 'Trap Bar Deadlift'],
+                    42: ['Squat'],
+                    43: ['Bench Press', 'Trap Bar Deadlift']
+                };
+                const E1RM_PRIMER_WEEKS = [50]; // Light singles, not AMRAP
+                const isE1RMCheckWeek = (weekNum, liftName) =>
+                    E1RM_CHECK_WEEKS[weekNum] && E1RM_CHECK_WEEKS[weekNum].includes(liftName);
+                const isE1RMPrimerWeek = (weekNum) => E1RM_PRIMER_WEEKS.includes(weekNum);
+                const e1RMNote = (weekNum, liftName, baseNote) => {
+                    if (isE1RMCheckWeek(weekNum, liftName)) {
+                        return "💪 e1RM CHECK — Last set = AMRAP to technical failure · log reps · update 1RM Calc tab · " + baseNote;
+                    }
+                    if (isE1RMPrimerWeek(weekNum) && ['Squat','Bench Press','Trap Bar Deadlift'].includes(liftName)) {
+                        return "🎯 PRIMER SET — 1 single @ 87-93% · rehearse max attempt · no AMRAP · " + baseNote;
+                    }
+                    return baseNote;
+                };
 
                 const mesocycles = [
                     { name: "Recovery & General Prep", weeks: 4, focus: "Post-race recovery and foundation", trainingEmphasis: "Active Recovery" },
@@ -298,11 +329,11 @@
                     { name: "Hypertrophy Block 2", weeks: 4, focus: "Advanced hypertrophy", trainingEmphasis: "Functional Hypertrophy" },
                     { name: "Strength Block 2", weeks: 4, focus: "Competition-specific loads", trainingEmphasis: "Advanced Strength" },
                     { name: "Power Block 2", weeks: 4, focus: "Peak power output", trainingEmphasis: "Competition Power" },
-                    { name: "Aerobic Block", weeks: 4, focus: "Aerobic maintenance + strength-power priority", trainingEmphasis: "General Aerobic Fitness" },
+                    { name: "Job Transition Block", weeks: 4, focus: "Adapt to 3-day compact training", trainingEmphasis: "Schedule Consolidation" },
                     { name: "Strength-Power Integration", weeks: 4, focus: "Integrate strength with power", trainingEmphasis: "Complex Training" },
                     { name: "Peaking Phase 1", weeks: 4, focus: "Peak strength abilities", trainingEmphasis: "Strength Peak" },
                     { name: "Speed/Power Peaking", weeks: 4, focus: "Peak VJ and 40yd dash", trainingEmphasis: "Explosive Peak" },
-                    { name: "Aerobic Maintenance", weeks: 4, focus: "Running base maintenance during lift peak", trainingEmphasis: "Easy Aerobic Running" },
+                    { name: "Taper Block", weeks: 4, focus: "Reduce volume, preserve intensity before testing", trainingEmphasis: "Taper for Testing" },
                     { name: "Testing & Realization", weeks: 4, focus: "Test all goals", trainingEmphasis: "Max Out" }
                 ];
 
@@ -383,10 +414,22 @@
 
                 // ── PLYOMETRIC PERIODIZATION v2 ─────────────────────────────────────────────
                 // Primary plyo day = Saturday (before sprints). Monday = activation/PAP only.
+                // ═══ PLUS PLYOS TIER SYSTEM (Matt McInnes Watson) ══════════════════════
+                // Four tiers classify plyos by GCT + intent:
+                //   LIGHT  — <0.25s GCT, low-intensity reactive, joint capacity (warm-up, pogos, A-skips)
+                //   MEDIUM — 0.15-0.25s GCT, submaximal elastic (CMJ, broad jump, bounds, SL hops)
+                //   PING   — <0.15s GCT, maximal reactive/shock, high GRF (speed hops, reactive DJ)
+                //   DEEP   — >0.25s GCT, deep ROM, eccentric absorption (depth drops w/ hold, split squat jumps)
+                // Progression order: LIGHT → MEDIUM → DEEP → PING (build base before max shock).
+                // For Chase's 18" VJ goal: MEDIUM is main CMJ driver; DEEP builds eccentric capacity;
+                // PING expresses peak reactivity; LIGHT warms tissues. Rotate through all four annually.
                 // Contact tracking built into every plyo exercise.
-                // Helper: compact plyo exercise builder
-                const P = (name, sets, reps, contacts, notes, extra={}) => ({name, sets, reps, weight:"", percent:"", completed:false, notes, isPlyo:true, contacts, ...extra});
-                const PT = (name, sets, reps, contacts, notes) => P(name, sets, reps, contacts, "📊 " + notes, {isPlyoTest:true});
+                // Helper: compact plyo exercise builder (tier optional — prepends "[TIER]" to name if given)
+                const P = (name, sets, reps, contacts, notes, tier, extra={}) => ({
+                    name: tier ? `[${tier}] ${name}` : name,
+                    sets, reps, weight:"", percent:"", completed:false, notes, isPlyo:true, contacts, plyoTier: tier || null, ...extra
+                });
+                const PT = (name, sets, reps, contacts, notes, tier) => P(name, sets, reps, contacts, "📊 " + notes, tier, {isPlyoTest:true});
 
                 // ── SATURDAY PLYOS — Week-specific lookup (performed BEFORE sprints) ──────
                 function getSaturdayPlyos(weekNum) {
@@ -394,150 +437,150 @@
                         // Meso 0 — Recovery: No plyos
                         1:[], 2:[], 3:[], 4:[],
                         // Meso 1 — Anatomical Adaptation
-                        5: [P("Pogo Hops Stationary",3,"10",30,"Baseline · Log GCT on pogos if possible · stiff ankle, spring off"),
-                            P("Squat Jump (no countermovement)",3,"5",30,"Start low, pause 2sec, drive up — no bounce · pure concentric")],
-                        6: [P("Pogo Hops Forward 5m",3,"12",36,"Forward travel · maintain stiff ankle rhythm"),
-                            P("CMJ (hands on hips)",3,"5",30,"RECORD HEIGHT — Baseline #1 · push floor away, explode UP")],
-                        7: [P("Pogo Hops Forward 5m",3,"15",45,"Increasing volume · GCT <280ms target"),
-                            P("CMJ (hands on hips)",3,"5",30,"Max effort · quarter-squat countermovement depth"),
-                            P("Lateral Two-Foot Hops",3,"6/side",36,"Frontal plane intro · soft bilateral landings")],
-                        8: [P("Pogo Hops",2,"10",20,"Deload volume"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #1 — Record height · compare to Week 6 baseline")],
+                        5: [P("[LIGHT] Pogo Hops Stationary",3,"10",30,"Baseline · Log GCT on pogos if possible · stiff ankle, spring off"),
+                            P("[MEDIUM] Squat Jump (no countermovement)",3,"5",30,"Start low, pause 2sec, drive up — no bounce · pure concentric")],
+                        6: [P("[LIGHT] Pogo Hops Forward 5m",3,"12",36,"Forward travel · maintain stiff ankle rhythm"),
+                            P("[MEDIUM] CMJ (hands on hips)",3,"5",30,"RECORD HEIGHT — Baseline #1 · push floor away, explode UP")],
+                        7: [P("[LIGHT] Pogo Hops Forward 5m",3,"15",45,"Increasing volume · GCT <280ms target"),
+                            P("[MEDIUM] CMJ (hands on hips)",3,"5",30,"Max effort · quarter-squat countermovement depth"),
+                            P("[MEDIUM] Lateral Two-Foot Hops",3,"6/side",36,"Frontal plane intro · soft bilateral landings")],
+                        8: [P("[LIGHT] Pogo Hops",2,"10",20,"Deload volume"),
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #1 — Record height · compare to Week 6 baseline")],
                         // Meso 2 — Hypertrophy 1
-                        9: [P("Pogo Forward 10m",3,"15",45,"Longer distance · maintain rhythm"),
-                            P("CMJ (hands on hips)",4,"5",40,"Building CMJ volume"),
-                            P("Squat Jump",3,"5",30,"No SSC · isolates concentric force production")],
-                        10:[P("Pogo Forward 10m",4,"15",60,"Volume building"),
-                            P("CMJ (hands on hips)",4,"5",40,"Consistent max effort"),
+                        9: [P("[LIGHT] Pogo Forward 10m",3,"15",45,"Longer distance · maintain rhythm"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"5",40,"Building CMJ volume"),
+                            P("[MEDIUM] Squat Jump",3,"5",30,"No SSC · isolates concentric force production")],
+                        10:[P("[LIGHT] Pogo Forward 10m",4,"15",60,"Volume building"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"5",40,"Consistent max effort"),
                             P("Split Squat Jump",3,"5/side",30,"Alternating legs · soft landing each rep"),
-                            P("Lateral Hops",3,"8/side",48,"Frontal plane SSC development")],
-                        11:[P("Pogo Forward 10m",4,"15",60,"Peak pogo volume this meso"),
-                            P("CMJ (hands on hips)",4,"6",48,"Highest CMJ volume of Phase A"),
-                            P("Tuck Jump",3,"5",30,"Explode up, pull knees, land soft · quality > height"),
-                            P("Double-Leg Hops for Distance",3,"5",30,"Max distance per hop · horizontal SSC")],
-                        12:[P("Pogo Hops",2,"10",20,"Deload"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #2 — Must improve from Wk 8 · Gate: RSI≥1.0, GCT<280ms")],
+                            P("[MEDIUM] Lateral Hops",3,"8/side",48,"Frontal plane SSC development")],
+                        11:[P("[LIGHT] Pogo Forward 10m",4,"15",60,"Peak pogo volume this meso"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"6",48,"Highest CMJ volume of Phase A"),
+                            P("[MEDIUM] Tuck Jump",3,"5",30,"Explode up, pull knees, land soft · quality > height"),
+                            P("[MEDIUM] Double-Leg Hops for Distance",3,"5",30,"Max distance per hop · horizontal SSC")],
+                        12:[P("[LIGHT] Pogo Hops",2,"10",20,"Deload"),
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #2 — Must improve from Wk 8 · Gate: RSI≥1.0, GCT<280ms")],
                         // Meso 3 — Strength 1
-                        13:[P("Reactive Pogo Forward",4,"15",60,"Target GCT <250ms · fast SSC transition"),
-                            P("CMJ (hands on hips)",4,"6",48,"Continue building"),
-                            P("Tuck Jump",3,"6",36,"Increased reps — maintain landing quality"),
-                            P("Alternating Bounding",3,"5/side",60,"First bounding intro · drive knee forward, push ground BACK")],
-                        14:[P("Reactive Pogo Forward",4,"15",60,"Maintain fast GCT"),
-                            P("CMJ (hands on hips)",5,"5",50,"5 sets — higher CNS demand"),
-                            P("Alternating Bounding",4,"6/side",96,"Loading week · cover distance per bound"),
-                            P("Bilateral Broad Jump",3,"5",30,"High-GRF horizontal SSC · swing arms, push floor BACK")],
-                        15:[P("Reactive Pogo Forward",4,"15",60,"Consistent"),
-                            P("CMJ (hands on hips)",5,"6",60,"Peak CMJ volume this phase"),
-                            P("Alternating Bounding",4,"6/side",96,"Maintain bounding volume"),
-                            P("Tuck Jump",4,"5",40,"Fatigue-resistant landing quality")],
-                        16:[P("Pogo Hops",2,"10",20,"Deload"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #3 — Gate to SL: RSI≥1.3, GCT<250ms, no asymmetry")],
+                        13:[P("[PING] Reactive Pogo Forward",4,"15",60,"Target GCT <250ms · fast SSC transition"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"6",48,"Continue building"),
+                            P("[MEDIUM] Tuck Jump",3,"6",36,"Increased reps — maintain landing quality"),
+                            P("[MEDIUM] Alternating Bounding",3,"5/side",60,"First bounding intro · drive knee forward, push ground BACK")],
+                        14:[P("[PING] Reactive Pogo Forward",4,"15",60,"Maintain fast GCT"),
+                            P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"5 sets — higher CNS demand"),
+                            P("[MEDIUM] Alternating Bounding",4,"6/side",96,"Loading week · cover distance per bound"),
+                            P("[MEDIUM] Bilateral Broad Jump",3,"5",30,"High-GRF horizontal SSC · swing arms, push floor BACK")],
+                        15:[P("[PING] Reactive Pogo Forward",4,"15",60,"Consistent"),
+                            P("[MEDIUM] CMJ (hands on hips)",5,"6",60,"Peak CMJ volume this phase"),
+                            P("[MEDIUM] Alternating Bounding",4,"6/side",96,"Maintain bounding volume"),
+                            P("[MEDIUM] Tuck Jump",4,"5",40,"Fatigue-resistant landing quality")],
+                        16:[P("[LIGHT] Pogo Hops",2,"10",20,"Deload"),
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #3 — Gate to SL: RSI≥1.3, GCT<250ms, no asymmetry")],
                         // Meso 4 — Power 1 (SL introduction, first depth drops)
-                        17:[P("CMJ (hands on hips)",4,"5",40,"Maintain bilateral baseline"),
-                            P("SL Vertical Jump",3,"3/side",18,"FIRST SL PLYO — load one leg, explode, stick landing · no wobble"),
-                            P("Alt Bounding Max Distance",4,"6/side",96,"Max distance per bound · horizontal reactive power"),
-                            P("Reactive Pogo Forward",3,"15",45,"Maintain fast SSC baseline")],
-                        18:[P("CMJ (hands on hips)",5,"5",50,"Building"),
-                            P("SL Vertical Jump",3,"4/side",24,"Progressing SL volume"),
-                            P("Depth Drop 20cm",3,"5",30,"FIRST DEPTH DROP — step off, absorb, FREEZE 2sec · no rebound"),
-                            P("Alternating Bounding",4,"6/side",96,"Maintain")],
-                        19:[P("CMJ (hands on hips)",5,"5",50,"Consistent"),
-                            P("SL Vertical Jump",4,"4/side",32,"4 sets SL"),
-                            P("Depth Drop 20cm",4,"5",40,"Increased volume · track GCT on absorption"),
-                            P("SL Broad Jump",3,"3/side",18,"Unilateral horizontal · stick each landing")],
-                        20:[P("Pogo Hops",2,"10",20,"Deload"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #4 — Track SL progress · compare bilateral CMJ trend")],
+                        17:[P("[MEDIUM] CMJ (hands on hips)",4,"5",40,"Maintain bilateral baseline"),
+                            P("[MEDIUM] SL Vertical Jump",3,"3/side",18,"FIRST SL PLYO — load one leg, explode, stick landing · no wobble"),
+                            P("[MEDIUM] Alt Bounds Max Distance",4,"6/side",96,"Max distance per bound · horizontal reactive power"),
+                            P("[PING] Reactive Pogo Forward",3,"15",45,"Maintain fast SSC baseline")],
+                        18:[P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Building"),
+                            P("[MEDIUM] SL Vertical Jump",3,"4/side",24,"Progressing SL volume"),
+                            P("[DEEP] Depth Drop 20cm",3,"5",30,"FIRST DEPTH DROP — step off, absorb, FREEZE 2sec · no rebound"),
+                            P("[MEDIUM] Alternating Bounding",4,"6/side",96,"Maintain")],
+                        19:[P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Consistent"),
+                            P("[MEDIUM] SL Vertical Jump",4,"4/side",32,"4 sets SL"),
+                            P("[DEEP] Depth Drop 20cm",4,"5",40,"Increased volume · track GCT on absorption"),
+                            P("[MEDIUM] SL Broad Jump",3,"3/side",18,"Unilateral horizontal · stick each landing")],
+                        20:[P("[LIGHT] Pogo Hops",2,"10",20,"Deload"),
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #4 — Track SL progress · compare bilateral CMJ trend")],
                         // Meso 5 — Hypertrophy 2 (reload, maintain SL capacity)
-                        21:[P("CMJ (hands on hips)",4,"5",40,"Reload — consistent effort"),
-                            P("SL Vertical Jump",3,"4/side",24,"Maintain SL from Meso 4"),
-                            P("Reactive Pogo Forward",4,"15",60,"Fast SSC maintenance"),
-                            P("Zigzag Bilateral Hops",3,"10",60,"Multi-directional · change-of-direction reactive")],
-                        22:[P("CMJ (hands on hips)",5,"5",50,"Building"),
-                            P("SL Vertical Jump",4,"4/side",32,"SL volume up"),
-                            P("Alternating Bounding",4,"6/side",96,"Horizontal reactive · sprint transfer"),
-                            P("Lateral Hops Max Amplitude",3,"8/side",48,"Max push-off · frontal plane power")],
-                        23:[P("CMJ (hands on hips)",5,"6",60,"Peak CMJ volume this meso"),
-                            P("SL Vertical Jump",4,"5/side",40,"Peak SL volume"),
-                            P("Alternating Bounding",4,"8/side",128,"Overreach bounding volume"),
-                            P("SL Broad Jump",3,"3/side",18,"Unilateral horizontal maintenance")],
-                        24:[P("Pogo Hops",2,"10",20,"Deload"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #5 — Gate to Depth Jumps: RSI≥1.3, SL LSI≥85%, GCT<250ms")],
+                        21:[P("[MEDIUM] CMJ (hands on hips)",4,"5",40,"Reload — consistent effort"),
+                            P("[MEDIUM] SL Vertical Jump",3,"4/side",24,"Maintain SL from Meso 4"),
+                            P("[PING] Reactive Pogo Forward",4,"15",60,"Fast SSC maintenance"),
+                            P("[MEDIUM] Zigzag Bilateral Hops",3,"10",60,"Multi-directional · change-of-direction reactive")],
+                        22:[P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Building"),
+                            P("[MEDIUM] SL Vertical Jump",4,"4/side",32,"SL volume up"),
+                            P("[MEDIUM] Alternating Bounding",4,"6/side",96,"Horizontal reactive · sprint transfer"),
+                            P("[MEDIUM] Lateral Hops Max Amplitude",3,"8/side",48,"Max push-off · frontal plane power")],
+                        23:[P("[MEDIUM] CMJ (hands on hips)",5,"6",60,"Peak CMJ volume this meso"),
+                            P("[MEDIUM] SL Vertical Jump",4,"5/side",40,"Peak SL volume"),
+                            P("[MEDIUM] Alternating Bounding",4,"8/side",128,"Overreach bounding volume"),
+                            P("[MEDIUM] SL Broad Jump",3,"3/side",18,"Unilateral horizontal maintenance")],
+                        24:[P("[LIGHT] Pogo Hops",2,"10",20,"Deload"),
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #5 — Gate to Depth Jumps: RSI≥1.3, SL LSI≥85%, GCT<250ms")],
                         // Meso 6 — Strength 2 (DEPTH JUMPS introduced, GCT-guided)
                         25:[P("Depth Jump 20cm (GCT-guided)",4,"4",32,"FIRST DEPTH JUMP — step off, ATTACK ground, rebound MAX · track GCT"),
-                            P("CMJ (hands on hips)",4,"5",40,"Maintain bilateral expression"),
-                            P("SL Vertical Jump",4,"4/side",32,"Unilateral maintenance"),
-                            P("SL Lateral Hop",3,"4/side",24,"Frontal plane reactive · medial knee control")],
+                            P("[MEDIUM] CMJ (hands on hips)",4,"5",40,"Maintain bilateral expression"),
+                            P("[MEDIUM] SL Vertical Jump",4,"4/side",32,"Unilateral maintenance"),
+                            P("[MEDIUM] SL Lateral Hop",3,"4/side",24,"Frontal plane reactive · medial knee control")],
                         26:[P("Depth Jump (GCT-guided)",4,"4",32,"GCT<220ms→raise 10cm | 220-250ms→hold | >250ms→lower 10cm"),
-                            P("CMJ (hands on hips)",5,"5",50,"Building"),
-                            P("SL Vertical Jump",4,"5/side",40,"SL progressing"),
+                            P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Building"),
+                            P("[MEDIUM] SL Vertical Jump",4,"5/side",40,"SL progressing"),
                             P("Alt Bounds Sprint Transfer 10m",3,"~16 contacts",48,"Bounding into sprint acceleration · 10m transition")],
                         27:[P("Depth Jump (GCT-guided)",5,"4",40,"Highest DJ volume this meso · never exceed 50cm box"),
-                            P("CMJ (hands on hips)",5,"5",50,"Consistent"),
-                            P("SL Vertical Jump",5,"4/side",40,"Peak SL volume"),
-                            P("SL Lateral Hop",4,"5/side",40,"Multi-planar reactive")],
+                            P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Consistent"),
+                            P("[MEDIUM] SL Vertical Jump",5,"4/side",40,"Peak SL volume"),
+                            P("[MEDIUM] SL Lateral Hop",4,"5/side",40,"Multi-planar reactive")],
                         28:[P("CMJ",2,"3",12,"Light primer"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #6 — Depth jump GCT baseline established · track CMJ trend")],
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #6 — Depth jump GCT baseline established · track CMJ trend")],
                         // Meso 7 — Power 2 (MONEY MESO — peak depth jump development)
                         29:[P("Depth Jump (GCT-guided, progressed)",4,"4",32,"Expect 30-40cm if progression clean · max reactive effort"),
-                            P("CMJ Max Effort",5,"4",40,"Every rep = max intent · 2min rest between sets"),
-                            P("SL Vertical Jump",4,"4/side",32,"Maintain unilateral")],
-                        30:[P("Depth Jump (progressed)",5,"4",40,"Loading week · highest DJ volume"),
-                            P("CMJ (hands on hips)",5,"5",50,"Peak bilateral volume"),
-                            P("SL Vertical Jump",4,"5/side",40,"SL loading")],
-                        31:[P("Depth Jump (progressed)",5,"4",40,"Overreach · 72h recovery before Monday mandatory"),
-                            P("CMJ (hands on hips)",5,"5",50,"Maintain through overreach"),
-                            P("Alt Bounds Sprint Transfer 15m",4,"~20 contacts",80,"Horizontal reactive → sprint transition · 15m distance")],
+                            P("[MEDIUM] CMJ Max Effort",5,"4",40,"Every rep = max intent · 2min rest between sets"),
+                            P("[MEDIUM] SL Vertical Jump",4,"4/side",32,"Maintain unilateral")],
+                        30:[P("[PING] Depth Jump (reactive)",5,"4",40,"Loading week · highest DJ volume"),
+                            P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Peak bilateral volume"),
+                            P("[MEDIUM] SL Vertical Jump",4,"5/side",40,"SL loading")],
+                        31:[P("[PING] Depth Jump (reactive)",5,"4",40,"Overreach · 72h recovery before Monday mandatory"),
+                            P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Maintain through overreach"),
+                            P("[MEDIUM] Alt Bounds Sprint Transfer 15m",4,"~20 contacts",80,"Horizontal reactive → sprint transition · 15m distance")],
                         32:[P("CMJ",2,"3",12,"Light"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #7 — Expect BEST CMJ to date · money meso payoff")],
-                        // Meso 8 — Aerobic Block (maintenance hold)
-                        33:[P("Depth Jump (hold Meso 7 height)",3,"3",18,"Maintenance only · hold reactive gains"),
-                            P("CMJ (hands on hips)",3,"4",24,"Reduced volume · maintain neural pattern")],
-                        34:[P("Depth Jump (hold height)",3,"4",24,"Slight volume increase"),
-                            P("CMJ (hands on hips)",4,"4",32,"Moderate")],
-                        35:[P("Depth Jump (hold height)",3,"4",24,"Consistent maintenance"),
-                            P("CMJ (hands on hips)",4,"4",32,"Consistent")],
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #7 — Expect BEST CMJ to date · money meso payoff")],
+                        // Meso 8 — Job Transition Block (Phase C compact training)
+                        33:[P("[PING] Depth Jump (reactive, maintain)",3,"3",18,"Maintenance only · hold reactive gains"),
+                            P("[MEDIUM] CMJ (hands on hips)",3,"4",24,"Reduced volume · maintain neural pattern")],
+                        34:[P("[PING] Depth Jump (reactive)",3,"4",24,"Slight volume increase"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"4",32,"Moderate")],
+                        35:[P("[PING] Depth Jump (reactive)",3,"4",24,"Consistent maintenance"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"4",32,"Consistent")],
                         36:[P("CMJ",2,"3",12,"Light"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #8 — Confirm VJ hasn't regressed during aerobic block")],
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #8 — Confirm VJ hasn't regressed during job transition")],
                         // Meso 9 — Strength-Power Integration (2nd peak conversion)
-                        37:[P("Depth Jump (push height via GCT)",4,"4",32,"May reach 40-50cm if GCT allows · max 60cm cap"),
-                            P("CMJ Max Effort",5,"4",40,"Every rep = max intent"),
-                            P("SL Vertical Jump",4,"4/side",32,"Maintain unilateral expression")],
-                        38:[P("Depth Jump (push height)",5,"4",40,"Loading · highest-quality reps of the year"),
-                            P("CMJ (hands on hips)",5,"5",50,"Full bilateral volume"),
-                            P("SL Vertical Jump",4,"5/side",40,"SL loading")],
-                        39:[P("Depth Jump (push height)",5,"4",40,"Overreach · multi-planar reactive work"),
-                            P("CMJ (hands on hips)",5,"5",50,"Maintain through overreach"),
-                            P("SL Lateral Hop",4,"5/side",40,"Frontal plane reactive peak")],
+                        37:[P("[PING] Depth Jump (push height · GCT-driven)",4,"4",32,"May reach 40-50cm if GCT allows · max 60cm cap"),
+                            P("[MEDIUM] CMJ Max Effort",5,"4",40,"Every rep = max intent"),
+                            P("[MEDIUM] SL Vertical Jump",4,"4/side",32,"Maintain unilateral expression")],
+                        38:[P("[PING] Depth Jump (push height)",5,"4",40,"Loading · highest-quality reps of the year"),
+                            P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Full bilateral volume"),
+                            P("[MEDIUM] SL Vertical Jump",4,"5/side",40,"SL loading")],
+                        39:[P("[PING] Depth Jump (push height)",5,"4",40,"Overreach · multi-planar reactive work"),
+                            P("[MEDIUM] CMJ (hands on hips)",5,"5",50,"Maintain through overreach"),
+                            P("[MEDIUM] SL Lateral Hop",4,"5/side",40,"Frontal plane reactive peak")],
                         40:[P("CMJ",2,"3",12,"Light"),
-                            PT("CMJ (hands on hips)",3,"3",18,"TEST #9 — Second-best CMJ expected · confirms reconversion")],
+                            PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #9 — Second-best CMJ expected · confirms reconversion")],
                         // Meso 10 — Peaking 1 (express, highest quality)
-                        41:[P("Depth Jump (peak height)",4,"3",24,"Peak individualized height · max intent every rep"),
-                            P("CMJ Max Effort",4,"3",24,"Approaching 18\" target · full recovery between sets"),
-                            P("SL Vertical Jump",3,"3/side",18,"Reduced volume · maintain")],
-                        42:[P("Depth Jump (peak height)",4,"4",32,"Slight volume bump"),
-                            P("CMJ (hands on hips)",4,"4",32,"Loading"),
-                            P("SL Vertical Jump",3,"3/side",18,"Maintain")],
-                        43:[P("Depth Jump (peak height)",4,"3",24,"Step back volume · quality only"),
-                            P("CMJ (hands on hips)",4,"3",24,"Reduced — stay sharp")],
-                        44:[PT("CMJ (hands on hips)",3,"3",18,"TEST #10 — Should approach 18\" target · peak supercompensation")],
+                        41:[P("[PING] Depth Jump (peak height)",4,"3",24,"Peak individualized height · max intent every rep"),
+                            P("[MEDIUM] CMJ Max Effort",4,"3",24,"Approaching 18\" target · full recovery between sets"),
+                            P("[MEDIUM] SL Vertical Jump",3,"3/side",18,"Reduced volume · maintain")],
+                        42:[P("[PING] Depth Jump (peak height)",4,"4",32,"Slight volume bump"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"4",32,"Loading"),
+                            P("[MEDIUM] SL Vertical Jump",3,"3/side",18,"Maintain")],
+                        43:[P("[PING] Depth Jump (peak height)",4,"3",24,"Step back volume · quality only"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"3",24,"Reduced — stay sharp")],
+                        44:[PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #10 — Should approach 18\" target · peak supercompensation")],
                         // Meso 11 — Speed/Power Peaking (taper begins)
-                        45:[P("Depth Jump (peak height)",3,"3",18,"Taper volume · max intent"),
-                            P("CMJ (hands on hips)",4,"3",24,"Sharp, fast, effortless")],
-                        46:[P("Depth Jump (peak height)",3,"3",18,"Maintain"),
-                            P("CMJ (hands on hips)",4,"3",24,"Consistent expression")],
-                        47:[P("Depth Jump",2,"3",12,"Reduced · approaching final taper"),
-                            P("CMJ (hands on hips)",3,"3",18,"Minimal but max intent")],
-                        48:[PT("CMJ (hands on hips)",3,"3",18,"TEST #11 — Final taper benchmark · within 10% of 18\"?")],
-                        // Meso 12 — Aerobic Maintenance (VJ maintenance, running base)
-                        49:[P("CMJ (hands on hips)",3,"3",18,"Maintenance only · no depth jumps (running freshness)")],
-                        50:[P("CMJ (hands on hips)",3,"3",18,"Hold neural pattern")],
-                        51:[P("CMJ (hands on hips)",2,"3",12,"Minimal")],
-                        52:[PT("CMJ (hands on hips)",3,"3",18,"TEST #12 — Confirm no VJ regression during aerobic maintenance")],
+                        45:[P("[PING] Depth Jump (peak height)",3,"3",18,"Taper volume · max intent"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"3",24,"Sharp, fast, effortless")],
+                        46:[P("[PING] Depth Jump (peak height)",3,"3",18,"Maintain"),
+                            P("[MEDIUM] CMJ (hands on hips)",4,"3",24,"Consistent expression")],
+                        47:[P("[PING] Depth Jump",2,"3",12,"Reduced · approaching final taper"),
+                            P("[MEDIUM] CMJ (hands on hips)",3,"3",18,"Minimal but max intent")],
+                        48:[PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #11 — Final taper benchmark · within 10% of 18\"?")],
+                        // Meso 12 — Taper Block (Phase C taper before testing)
+                        49:[P("[MEDIUM] CMJ (hands on hips)",3,"3",18,"Maintenance only · no depth jumps (running freshness)")],
+                        50:[P("[MEDIUM] CMJ (hands on hips)",3,"3",18,"Hold neural pattern")],
+                        51:[P("[MEDIUM] CMJ (hands on hips)",2,"3",12,"Minimal")],
+                        52:[PT("[MEDIUM] CMJ (hands on hips)",3,"3",18,"TEST #12 — Confirm no VJ regression during taper")],
                         // Meso 13 — Testing & Realization
-                        53:[P("CMJ (hands on hips)",3,"3",18,"Final sharpening · should feel explosive"),
-                            P("Depth Jump",2,"3",12,"Last depth jumps of the program")],
-                        54:[P("CMJ (hands on hips)",3,"3",18,"Light primer only")],
-                        55:[P("CMJ (hands on hips)",2,"3",12,"Minimal · rest for test week")],
+                        53:[P("[MEDIUM] CMJ (hands on hips)",3,"3",18,"Final sharpening · should feel explosive"),
+                            P("[PING] Depth Jump",2,"3",12,"Last depth jumps of the program")],
+                        54:[P("[MEDIUM] CMJ (hands on hips)",3,"3",18,"Light primer only")],
+                        55:[P("[MEDIUM] CMJ (hands on hips)",2,"3",12,"Minimal · rest for test week")],
                         56:[PT("🏆 VERTICAL JUMP TEST (hands on hips)",5,"1",10,"Goal: 18 inches · BEST OF 5 · 3-5min rest between jumps")]
                     };
                     return map[weekNum] || [];
@@ -559,21 +602,21 @@
                     // Deload weeks: reduced activation
                     if (isDeload) {
                         if (mesoIndex <= 3 || mesoIndex === 5) {
-                            return {preLift:[P("CMJ (hands on hips)",2,"3",12,"Deload activation · sub-max")], postLift:[]};
+                            return {preLift:[P("[MEDIUM] CMJ (hands on hips)",2,"3",12,"Deload activation · sub-max")], postLift:[]};
                         }
                         return {preLift:[], postLift:[P("PAP: CMJ (after top squat set)",2,"3",12,"Deload PAP · light")]};
                     }
                     // Meso 1-3: Pre-lift activation (Pogos + CMJ before squats)
                     if (mesoIndex === 1 || mesoIndex === 2) {
                         return {preLift:[
-                            P("Pogo Hops Stationary",2,"10",20,"Pre-lift CNS activation · stiff ankle, spring off"),
-                            P("CMJ (hands on hips)",2,"3",12,"Prime bilateral movement pattern before squats")
+                            P("[LIGHT] Pogo Hops Stationary",2,"10",20,"Pre-lift CNS activation · stiff ankle, spring off"),
+                            P("[MEDIUM] CMJ (hands on hips)",2,"3",12,"Prime bilateral movement pattern before squats")
                         ], postLift:[]};
                     }
                     if (mesoIndex === 3) {
                         return {preLift:[
                             P("Reactive Pogo Hops",2,"12",24,"Pre-lift activation · target GCT <250ms"),
-                            P("CMJ (hands on hips)",2,"3",12,"Prime CNS for heavy squat sets")
+                            P("[MEDIUM] CMJ (hands on hips)",2,"3",12,"Prime CNS for heavy squat sets")
                         ], postLift:[]};
                     }
                     // Meso 4: CMJ pre-squat + PAP CMJ post-squat
@@ -587,7 +630,7 @@
                     if (mesoIndex === 5) {
                         return {preLift:[
                             P("Reactive Pogo Hops",2,"12",24,"Pre-lift activation"),
-                            P("CMJ (hands on hips)",2,"4",16,"Increased reps · maintain pattern")
+                            P("[MEDIUM] CMJ (hands on hips)",2,"4",16,"Increased reps · maintain pattern")
                         ], postLift:[]};
                     }
                     // Meso 6-7: PAP — squat top set → CMJ 3×3
@@ -662,7 +705,7 @@
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
                          {name: "40yd Sprint — MAX EFFORT", sets: 6, reps: "40yd", weight: "", percent: "", completed: false, notes: "TIME EVERY REP · 3-point start · 4min full recovery · goal sub-5.0", isSprint: true},
                          {name: "Resisted 40yd + Free 40yd", sets: 3, reps: "40yd x2", weight: "", percent: "", completed: false, notes: "Contrast set: resist → free sprint for overspeed effect", isSprint: true}],
-                        // 8 Aerobic Block — maintain sprint, reduce volume
+                        // 8 Job Transition Block (Phase C — dead code, early returned)
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
                          {name: "40yd Sprint (standing)", sets: 3, reps: "40yd", weight: "", percent: "", completed: false, notes: "Maintenance · 90% effort · TIME", isSprint: true}],
                         // 9 Strength-Power Integration — complex sprint
@@ -677,7 +720,7 @@
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
                          {name: "40yd Sprint — COMPETITION PREP", sets: 5, reps: "40yd", weight: "", percent: "", completed: false, notes: "TIME ALL · full 5min rest · target sub-5.0 · log each time", isSprint: true},
                          {name: "3-Point Start Drill", sets: 3, reps: "10yd", weight: "", percent: "", completed: false, notes: "Perfect start mechanics · explosive first step", isSprint: true}],
-                        // 12 Aerobic Maintenance — minimal sprints, stay sharp
+                        // 12 Taper Block (Phase C — dead code, early returned)
                         [{name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min", mileage: 1, isRun: true},
                          {name: "40yd Sprint", sets: 3, reps: "40yd", weight: "", percent: "", completed: false, notes: "Sharpening only · 90% · rest 5min · TIME", isSprint: true}],
                         // 13 Testing — test day
@@ -687,7 +730,186 @@
                     return phases[mesoIndex] || [];
                 }
 
+                // ═══ PHASE C SESSION GENERATOR (Weeks 27-56, July 6, 2026+) ═══════════════
+                // New job reality: 3 days/week, 30 min per lift session, Daily Mile separate.
+                // Schedule: Mon (Lower+Plyo) · Wed (Upper+Trap) · Sun (Speed+Clean+Plyo)
+                // Tue/Thu = Daily Mile only · Fri = travel · Sat = gameday
+                function generatePhaseCSessions(weekNum, mesoIndex, isDeload, weekInBlock) {
+                    let squatPct, benchPct, trapPct, cleanPct, mainSets, mainReps;
+
+                    if (mesoIndex === 6) {
+                        // Meso 6 Strength 2 — weeks 27-28 are ACCOMMODATION to new schedule
+                        mainSets = isDeload ? 3 : 4;
+                        mainReps = "4";
+                        squatPct = isDeload ? 0.75 : 0.78 + weekInBlock * 0.02;
+                        benchPct = isDeload ? 0.72 : 0.75 + weekInBlock * 0.02;
+                        trapPct  = isDeload ? 0.78 : 0.82 + weekInBlock * 0.02;
+                        cleanPct = 0.72;
+                    } else if (mesoIndex === 7) {
+                        // Meso 7 Power 2 — weeks 29-32
+                        mainSets = isDeload ? 3 : 4;
+                        mainReps = "3";
+                        squatPct = isDeload ? 0.78 : 0.82 + weekInBlock * 0.02;
+                        benchPct = isDeload ? 0.75 : 0.78 + weekInBlock * 0.02;
+                        trapPct  = isDeload ? 0.80 : 0.84 + weekInBlock * 0.02;
+                        cleanPct = isDeload ? 0.75 : 0.80;
+                    } else if (mesoIndex === 8) {
+                        // Meso 8 Job Transition Block — weeks 33-36 (consolidation)
+                        mainSets = 3;
+                        mainReps = "5";
+                        squatPct = 0.75 + weekInBlock * 0.015;
+                        benchPct = 0.72 + weekInBlock * 0.015;
+                        trapPct  = 0.78 + weekInBlock * 0.015;
+                        cleanPct = 0.72;
+                    } else if (mesoIndex === 9) {
+                        // Meso 9 Strength-Power Integration — weeks 37-40
+                        mainSets = isDeload ? 3 : 4;
+                        mainReps = isDeload ? "4" : "3-4";
+                        squatPct = isDeload ? 0.80 : 0.84 + weekInBlock * 0.02;
+                        benchPct = isDeload ? 0.78 : 0.82 + weekInBlock * 0.02;
+                        trapPct  = isDeload ? 0.82 : 0.86 + weekInBlock * 0.02;
+                        cleanPct = 0.78;
+                    } else if (mesoIndex === 10) {
+                        // Meso 10 Peaking Phase 1 — weeks 41-44 (strength peak)
+                        mainSets = isDeload ? 3 : 4;
+                        mainReps = isDeload ? "3" : "2-3";
+                        squatPct = isDeload ? 0.82 : 0.88 + weekInBlock * 0.02;
+                        benchPct = isDeload ? 0.80 : 0.85 + weekInBlock * 0.02;
+                        trapPct  = isDeload ? 0.85 : 0.90 + weekInBlock * 0.02;
+                        cleanPct = 0.80;
+                    } else if (mesoIndex === 11) {
+                        // Meso 11 Speed/Power Peaking — weeks 45-48
+                        mainSets = isDeload ? 3 : 4;
+                        mainReps = "3";
+                        squatPct = isDeload ? 0.78 : 0.82 + weekInBlock * 0.02;
+                        benchPct = isDeload ? 0.76 : 0.80 + weekInBlock * 0.02;
+                        trapPct  = isDeload ? 0.80 : 0.85 + weekInBlock * 0.02;
+                        cleanPct = isDeload ? 0.78 : 0.82;
+                    } else if (mesoIndex === 12) {
+                        // Meso 12 Taper Block — weeks 49-52 (volume down, intensity preserved)
+                        mainSets = 3;
+                        mainReps = "2-3";
+                        squatPct = weekInBlock <= 1 ? 0.85 : (weekInBlock === 2 ? 0.82 : 0.75);
+                        benchPct = weekInBlock <= 1 ? 0.82 : (weekInBlock === 2 ? 0.78 : 0.72);
+                        trapPct  = weekInBlock <= 1 ? 0.88 : (weekInBlock === 2 ? 0.85 : 0.78);
+                        cleanPct = 0.78;
+                    } else {
+                        // Meso 13 Testing & Realization — weeks 53-56
+                        mainSets = weekInBlock <= 1 ? 3 : 2;
+                        mainReps = weekInBlock <= 1 ? "2" : "1-2";
+                        squatPct = weekInBlock === 0 ? 0.90 : weekInBlock === 1 ? 0.93 : weekInBlock === 2 ? 0.95 : 1.0;
+                        benchPct = weekInBlock === 0 ? 0.87 : weekInBlock === 1 ? 0.92 : weekInBlock === 2 ? 0.95 : 1.0;
+                        trapPct  = weekInBlock === 0 ? 0.90 : weekInBlock === 1 ? 0.95 : weekInBlock === 2 ? 0.98 : 1.0;
+                        cleanPct = weekInBlock === 0 ? 0.82 : weekInBlock === 1 ? 0.87 : weekInBlock === 2 ? 1.0 : 1.0;
+                    }
+                    cleanPct = Math.min(cleanPct, 0.87);
+
+                    const squatWeight = Math.round(ONE_RM['Squat'] * squatPct / 5) * 5;
+                    const benchWeight = Math.round(ONE_RM['Bench Press'] * benchPct / 5) * 5;
+                    const trapWeight  = Math.round(ONE_RM['Trap Bar Deadlift'] * trapPct / 5) * 5;
+                    const cleanWeight = Math.round(ONE_RM['Power Clean'] * cleanPct / 5) * 5;
+
+                    const isTestWeek = (mesoIndex === 13 && weekInBlock === 2);
+
+                    // ─── PLUS PLYOS TIER ROTATION (Monday main plyo day) ───────
+                    // 4-week meso cycle: W1=Med+Light · W2=Med+Deep · W3=Med+Ping · W4=Deload Light only
+                    // MEDIUM is the constant driver (CMJ is VJ-specific); rotate partner tier for stimulus variety.
+                    let plyoA, plyoB;
+                    if (isDeload || weekInBlock === 3) {
+                        // Deload / W4 — LIGHT only (low-intensity reactive, recovery)
+                        plyoA = {name: "[LIGHT] Pogo Hops (low amplitude)", sets: 3, reps: "10", weight: "", percent: "", completed: false, notes: "Ankle stiffness · <0.2s GCT · extensive tier · recovery week · contacts: 30", isPlyo: true, plyoTier: "LIGHT", contacts: 30};
+                        plyoB = null;
+                    } else if (weekInBlock === 0) {
+                        // W1 — MEDIUM + LIGHT (introduction to block)
+                        plyoA = {name: "[MEDIUM] CMJ (hands on hips)", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "Max intent · post-squat PAP · elastic locomotion · 0.15-0.25s GCT · contacts: 9", isPlyo: true, plyoTier: "MEDIUM", contacts: 9};
+                        plyoB = {name: "[LIGHT] A-Skip + Pogo Series 20yd", sets: 3, reps: "20yd", weight: "", percent: "", completed: false, notes: "Reactive joint prep · extensive pattern · teach rhythm · contacts: 30", isPlyo: true, plyoTier: "LIGHT", contacts: 30};
+                    } else if (weekInBlock === 1) {
+                        // W2 — MEDIUM + DEEP (eccentric loading / absorption)
+                        plyoA = {name: "[MEDIUM] CMJ (max height)", sets: 4, reps: "3", weight: "", percent: "", completed: false, notes: "Peak CMJ expression · drive floor away · 3min rest between sets · contacts: 12", isPlyo: true, plyoTier: "MEDIUM", contacts: 12};
+                        plyoB = {name: "[DEEP] Depth Drop w/ 2-sec Hold (30cm)", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "Absorb deep + hold 2s · eccentric braking · >0.25s GCT intentional · contacts: 9", isPlyo: true, plyoTier: "DEEP", contacts: 9};
+                    } else {
+                        // W3 (weekInBlock === 2) — MEDIUM + PING (peak reactivity)
+                        plyoA = {name: "[MEDIUM] CMJ (hands on hips)", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "Max intent · post-squat PAP · RECORD HEIGHT · contacts: 9", isPlyo: true, plyoTier: "MEDIUM", contacts: 9};
+                        plyoB = {name: mesoIndex <= 9 ? "[PING] Reactive Depth Jump (30cm)" : "[PING] Reactive Depth Jump (40cm)", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "Minimize GCT · stiff ankle shock · <0.15s goal · hard surface · contacts: 9", isPlyo: true, plyoTier: "PING", contacts: 9};
+                    }
+                    // Test-week override: Meso 13 W3 tests CMJ (the VJ goal)
+                    if (isTestWeek) {
+                        plyoA = {name: "🏆 [MEDIUM] CMJ TEST", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: "🏆 Goal: 18\" VJ · Record every rep · full recovery 2min between", isPlyo: true, isPlyoTest: true, plyoTier: "MEDIUM", contacts: 9};
+                        plyoB = {name: "[PING] Reactive DJ (confirmation)", sets: 2, reps: "3", weight: "", percent: "", completed: false, notes: "Peak reactivity confirmation · short GCT · contacts: 6", isPlyo: true, plyoTier: "PING", contacts: 6};
+                    }
+
+                    // ─── Day 1 (Monday): Lower + Plyo · 30 min ─────────────────
+                    const mondayExercises = [
+                        {name: "[LIGHT] Warm-up: Pogos + A-skip + bodyweight squats", sets: 1, reps: "3min", weight: "", percent: "", completed: false, notes: "Joint/ankle prep · extensive tier · <0.2s GCT teach"},
+                        {name: isTestWeek ? "🏆 SQUAT TEST" : "Squat", sets: mainSets, reps: mainReps, weight: String(squatWeight), percent: Math.round(squatPct*100)+"%", completed: false, notes: isTestWeek ? "🏆 Goal: 365 lbs · full warm-up · spotter" : e1RMNote(weekNum, 'Squat', "Main lift · ~15min including rest · 2-3min between sets")},
+                        plyoA,
+                        ...(plyoB ? [plyoB] : []),
+                        {name: "Walking Lunge or SL RDL", sets: 2, reps: "6/side", weight: "BW or light DB", percent: "", completed: false, notes: "Unilateral accessory · ~3min · finish strong"}
+                    ];
+
+                    // ─── Day 2 (Tuesday): Daily Mile only ──────────────────────
+                    const tuesdayExercises = [
+                        {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min · run whenever fits", mileage: 1, isRun: true}
+                    ];
+
+                    // ─── Day 3 (Wednesday): Upper + Trap Bar · 30 min ──────────
+                    const wednesdayExercises = [
+                        {name: "Warm-up: Band pull-aparts + Shoulder dislocates", sets: 1, reps: "2min", weight: "", percent: "", completed: false, notes: "Shoulder prep · bands"},
+                        {name: isTestWeek ? "🏆 BENCH PRESS TEST" : "Bench Press", sets: mainSets, reps: mainReps, weight: String(benchWeight), percent: Math.round(benchPct*100)+"%", completed: false, notes: isTestWeek ? "🏆 Goal: 275 lbs · spotter required" : e1RMNote(weekNum, 'Bench Press', "Main upper · ~12min · 2-3min rest")},
+                        {name: isTestWeek ? "🏆 TRAP BAR DL TEST" : "Trap Bar Deadlift", sets: 3, reps: mainReps, weight: String(trapWeight), percent: Math.round(trapPct*100)+"%", completed: false, notes: isTestWeek ? "🏆 Goal: 450 lbs · hip drive · push floor away" : e1RMNote(weekNum, 'Trap Bar Deadlift', "Posterior chain · ~10min · hip drive")},
+                        {name: "DB Row", sets: 3, reps: "8", weight: "challenging", percent: "", completed: false, notes: "Back volume + shoulder health · ~4min"}
+                    ];
+
+                    // ─── Day 4 (Thursday): Daily Mile only ─────────────────────
+                    const thursdayExercises = [
+                        {name: "Daily Mile", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Easy pace ~9min · run whenever fits", mileage: 1, isRun: true}
+                    ];
+
+                    // ─── Day 5 (Friday): Rest / Travel ─────────────────────────
+                    const fridayExercises = [
+                        {name: "Daily Mile (travel-dependent)", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "If travel allows · else full rest day · keep legs fresh", mileage: 1, isRun: true}
+                    ];
+
+                    // ─── Day 6 (Saturday): Gameday (no training) ───────────────
+                    const saturdayExercises = [
+                        {name: "GAMEDAY — Work Day", sets: 1, reps: "—", weight: "", percent: "", completed: false, notes: "No training · long day on feet · hydrate + fuel well"}
+                    ];
+
+                    // ─── Day 7 (Sunday): Speed + Clean + Plyo · 30 min ─────────
+                    const is40ydTest = isTestWeek;
+                    const is40ydPCTest = (mesoIndex === 13 && weekInBlock === 2);
+                    const sprintSets = isDeload ? 3 : (mesoIndex >= 11 ? 4 : 5);
+                    const sprintName = is40ydTest ? "🏆 40-YARD DASH TEST" :
+                                       mesoIndex >= 10 ? "40yd Sprint — PEAK EFFORT" :
+                                       "40yd Sprint (w/ 1080 or gates)";
+                    const sprintNote = is40ydTest ? "🏆 Goal: Sub-5.0 · 10min rest between · TIME ALL reps · 3-point start" :
+                                       mesoIndex >= 10 ? "⚡ Peak sprint work · TIME every rep · 4min full CNS recovery · gates" :
+                                       "40yd sprints · 3-4min rest · gates or 1080 · TIME each rep";
+                    const sundayExercises = [
+                        {name: "[LIGHT] Dynamic Warm-up: A-skips + Wall Drills + Low Pogos", sets: 1, reps: "5min", weight: "", percent: "", completed: false, notes: "Wall drive series · A-skip 2x20yd · low pogos 2x10 · extensive joint prep"},
+                        {name: sprintName, sets: sprintSets, reps: "40yd", weight: "", percent: "", completed: false, notes: sprintNote, isSprint: true},
+                        {name: is40ydPCTest ? "🏆 POWER CLEAN TEST" : "Power Clean", sets: 3, reps: "2", weight: String(cleanWeight), percent: Math.round(cleanPct*100)+"%", completed: false, notes: is40ydPCTest ? "🏆 Goal: 225 lbs · technique over load · 3min rest" : "Speed-strength · explosive · 2min rest"},
+                        {name: mesoIndex >= 10 ? "[PING] Speed Hops (unilateral 15yd)" : "[MEDIUM] Broad Jump or SL Lateral Hop", sets: 3, reps: "3", weight: "", percent: "", completed: false, notes: mesoIndex >= 10 ? "Max reactivity · short GCT · locomotion-specific · peak tier" : "Horizontal power expression · 2min rest · submaximal elastic", isPlyo: true, plyoTier: mesoIndex >= 10 ? "PING" : "MEDIUM"},
+                        {name: "Daily Mile (separate)", sets: 1, reps: "1 mile", weight: "", percent: "", completed: false, notes: "Run separately from sprint session · easy pace", mileage: 1, isRun: true}
+                    ];
+
+                    return [
+                        { name: "Day 1: Lower + Plyo", day: "Monday", exercises: mondayExercises, notes: "⏱ 30min · Squat + Plus Plyos tier: " + (isDeload || weekInBlock === 3 ? "LIGHT (deload)" : weekInBlock === 0 ? "MED+LIGHT" : weekInBlock === 1 ? "MED+DEEP" : "MED+PING") },
+                        { name: "Daily Mile Only", day: "Tuesday", exercises: tuesdayExercises, notes: "No lift · Daily Mile only · recovery" },
+                        { name: "Day 2: Upper + Trap Bar", day: "Wednesday", exercises: wednesdayExercises, notes: "⏱ 30min compact · Bench + Trap Bar + Row" },
+                        { name: "Daily Mile Only", day: "Thursday", exercises: thursdayExercises, notes: "No lift · Daily Mile only · recovery" },
+                        { name: "Rest / Travel", day: "Friday", exercises: fridayExercises, notes: "Travel day · Daily Mile if possible" },
+                        { name: "GAMEDAY", day: "Saturday", exercises: saturdayExercises, notes: "Working · no training" },
+                        { name: "Day 3: Speed + Clean + Plyo", day: "Sunday", exercises: sundayExercises, notes: "⏱ 30min · 40yd + Power Clean + Plus Plyos " + (mesoIndex >= 10 ? "PING tier" : "MEDIUM tier") }
+                    ];
+                }
+
                 function generateSessions(weekNum, mesoIndex, volume, isDeload, weekInBlock, isRecovery) {
+                    // ═══ PHASE C BRANCH (Weeks 27-56, July 6, 2026+) ════════════
+                    // 3 days/week × 30 min — new job reality
+                    if (weekNum >= 27) {
+                        return generatePhaseCSessions(weekNum, mesoIndex, isDeload, weekInBlock);
+                    }
                     const prog = 1 + (weekNum * 0.003);
                     let mainReps, mainSets, auxReps, auxSets;
                     // ── DIFFERENTIATED % CURVES ──────────────────────────────────
@@ -758,7 +980,7 @@
                         cleanPct = weekNum >= 55 ? 0.87 : 0.82;
                         benchSets = mainSets; benchReps = mainReps;
                     } else {
-                        // mesoIndex 8 (Aerobic Block) & 9 (Strength-Power Integration)
+                        // mesoIndex 8 (Job Transition) & 9 (Strength-Power) — Phase A/B only
                         const isAerobicMaint = mesoIndex === 8;
                         mainReps = isDeload ? "3" : isAerobicMaint ? "3-5" : "2-3";
                         mainSets = isDeload ? 3 : isAerobicMaint ? 3 : 4;
@@ -899,7 +1121,7 @@
 
                     // ── SESSION 1: MONDAY — Squat Day + Hamstring + Core + Plyos ────────────
                     const session1 = [
-                        {name: "Squat", sets: mainSets, reps: mainReps, weight: String(squatWeight), percent: Math.round(squatPct*100)+"%", completed: false, notes: "Bar speed focus — compensatory acceleration"},
+                        {name: "Squat", sets: mainSets, reps: mainReps, weight: String(squatWeight), percent: Math.round(squatPct*100)+"%", completed: false, notes: e1RMNote(weekNum, 'Squat', "Bar speed focus — compensatory acceleration")},
                         {name: "RFESS", sets: auxSets, reps: auxReps+"/leg", weight: String(rfessWeight), percent: rfessPct*100|0 + "%", completed: false, notes: "Unilateral squat — DB in each hand · Mike Boyle single-leg emphasis"},
                         {name: "Nordic Curl", sets: nordicSets, reps: nordicReps, weight: "", percent: "", completed: false, notes: nordicNotes}
                     ];
@@ -909,7 +1131,7 @@
                     // ── SESSION 2: WEDNESDAY — Upper Body + Olympic + Shoulder Health ───────
                     const session2 = [
                         {name: "Power Clean", sets: cleanSets, reps: cleanReps, weight: String(cleanWeight), percent: Math.round(cleanPct*100)+"%", completed: false, notes: "Explosive triple extension — catch in quarter-squat · velocity > load"},
-                        {name: "Bench Press", sets: benchSets, reps: benchReps, weight: String(benchWeight), percent: Math.round(benchPct*100)+"%", completed: false, notes: "Leg drive — tight arch, drive feet through floor"},
+                        {name: "Bench Press", sets: benchSets, reps: benchReps, weight: String(benchWeight), percent: Math.round(benchPct*100)+"%", completed: false, notes: e1RMNote(weekNum, 'Bench Press', "Leg drive — tight arch, drive feet through floor")},
                         {name: "Pull-ups", sets: auxSets, reps: auxReps, weight: pullupWeight, percent: "", completed: false, notes: pullupNotes},
                         {name: "DB Shoulder Press", sets: ohpSets, reps: ohpReps, weight: String(ohpWeight), percent: "", completed: false, notes: ohpNotes},
                         {name: "Face Pulls", sets: facePullSets, reps: facePullReps, weight: String(facePullWeight), percent: "", completed: false, notes: "Shoulder health — external rotation emphasis, squeeze rear delts 2sec"}
@@ -918,7 +1140,7 @@
 
                     // ── SESSION 3: FRIDAY — Hip Hinge Day + Front Squat + Bench Vol + Pull ──
                     const session3 = [
-                        {name: "Trap Bar Deadlift", sets: mainSets, reps: mainReps, weight: String(trapWeight), percent: Math.round(trapPct*100)+"%", completed: false, notes: "Hip drive — push floor away, not pull bar up"},
+                        {name: "Trap Bar Deadlift", sets: mainSets, reps: mainReps, weight: String(trapWeight), percent: Math.round(trapPct*100)+"%", completed: false, notes: e1RMNote(weekNum, 'Trap Bar Deadlift', "Hip drive — push floor away, not pull bar up")},
                         {name: "Front Squat", sets: auxSets, reps: auxReps, weight: String(frontSquatWeight), percent: frontSquatPctDisplay, completed: false, notes: frontSquatNotes},
                         {name: "RDL", sets: rdlSets, reps: rdlReps, weight: String(rdlWeight), percent: Math.round(rdlPct*100)+"%", completed: false, notes: rdlNotes},
                         {name: "Bench Press (Volume)", sets: auxSets, reps: auxReps, weight: String(fridayBenchWeight), percent: fridayBenchPctDisplay, completed: false, notes: fridayBenchNotes},
@@ -939,12 +1161,30 @@
                                            "Tempo 25-30min @ 7:30-7:45/mi";
                         tueRun = {name: runProtocol, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Pace discipline", mileage: runMileage1, isRun: true};
                         thuRun = {name: "Easy 20-30min", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Recovery — 8:30-9:00/mi", mileage: runMileage2, isRun: true};
-                    } else if (weekNum <= 24) {
-                        // Weeks 18-24: Base rebuild post-5K — aerobic development
-                        const wk = weekNum - 17; // 1-7
-                        const tempoMiles = Math.min(2 + Math.floor(wk / 2), 4);
-                        tueRun = {name: "Tempo " + (20 + wk * 2) + "min @ 7:20-7:30/mi", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Aerobic rebuild · controlled effort · post-5K base phase", mileage: tempoMiles, isRun: true};
-                        thuRun = {name: "Easy 25-30min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy 8:30-9:00/mi · strides at 5K pace effort", mileage: 3, isRun: true};
+                    } else if (weekNum <= 26) {
+                        // PHASE B: Weeks 18-26 (May 1 - July 5, 2026) — post-5K transition
+                        // Tuesday: FREE SPRINT DAY (no 1080 yet — body-weight sprints only)
+                        // Thursday: Easy 30-40min jog cap
+                        const wk = weekNum - 17; // 1-9
+                        const isRunDeload = wk === 4 || wk === 8;
+                        const sprintSessions = [
+                            {name: "Acceleration Day: 6x20yd", mileage: 1.5, notes: "Wall drills → 6x20yd accelerations · 2min rest · focus mechanics"},
+                            {name: "40yd Sprints: 4x40yd", mileage: 1.5, notes: "4x40yd · TIME each · 3-4min full recovery · 3-point start"},
+                            {name: "Flying 20s: 5x20yd", mileage: 1.5, notes: "20yd build-in → 20yd timed at top speed · 3min rest"},
+                            {name: "Extensive Tempo: 6x100yd", mileage: 2, notes: "70% effort · 100yd on/off · aerobic-sprint recovery work"},
+                            {name: "Hill/Stadium Sprints: 6x10sec", mileage: 1.5, notes: "Resistance sprint · 10-sec uphill max effort · walk down"},
+                            {name: "Block Starts: 6x15yd", mileage: 1, notes: "3-point starts · first-step quickness · 2min rest"},
+                            {name: "Short Shuttle 5-10-5: 5x", mileage: 1, notes: "Change-of-direction speed · full rest between sets"},
+                            {name: "Contrast Sprint: Resisted + Free 20yd x3", mileage: 1.5, notes: "Resisted 20yd → 30s rest → free 20yd · overspeed effect"},
+                            {name: "Flying 40s: 4x40yd", mileage: 1.5, notes: "20yd build-in → 40yd timed · top-end speed emphasis"}
+                        ];
+                        if (isRunDeload) {
+                            tueRun = {name: "Easy 25min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Deload week — easy aerobic + strides · save CNS", mileage: 2.5, isRun: true};
+                        } else {
+                            const s = sprintSessions[(wk-1) % sprintSessions.length];
+                            tueRun = {name: s.name, sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: s.notes, mileage: s.mileage, isRun: true, isSprint: true};
+                        }
+                        thuRun = {name: "Easy 30-40min jog", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Conversational only · 8:30-9:00/mi · cap at 40min", mileage: 4, isRun: true};
                     } else if (weekNum <= 32) {
                         // Weeks 25-32: VO2max development — 800m-1200m intervals
                         const wk = weekNum - 24;
@@ -996,7 +1236,7 @@
                         }
                         thuRun = {name: "Easy 20min + 4x100m strides", sets: 1, reps: "1", weight: "", percent: "", completed: false, notes: "Easy · keep legs fresh for peak lifting/sprint work", mileage: 2.5, isRun: true};
                     } else if (weekNum <= 52) {
-                        // Weeks 49-52: Aerobic Maintenance — easy running, hold aerobic base
+                        // Weeks 49-52: Taper Block — easy running, hold aerobic base
                         const wk = weekNum - 48;
                         const sessions = [
                             {name: "Easy 30min + 4x100m strides", mileage: 3, notes: "Easy aerobic · strides for turnover"},
@@ -1058,9 +1298,9 @@
 
                     return [
                         { name: "Squat Day" + (mondayActivation.preLift.length || mondayActivation.postLift.length ? " + Activation" : ""), day: "Monday", exercises: mondayExercises, notes: mondayNotes },
-                        { name: "Quality Run", day: "Tuesday", exercises: [tueRun], notes: weekNum <= 17 ? "5K Prep Running" : weekNum <= 24 ? "Base Rebuild" : weekNum <= 32 ? "VO2max Development" : weekNum <= 40 ? "Aerobic Block" : weekNum <= 48 ? "Easy Running (Peak Phase)" : weekNum <= 52 ? "Aerobic Maintenance" : "Testing" },
+                        { name: weekNum >= 18 && weekNum <= 26 ? "Sprint Day (Phase B)" : "Quality Run", day: "Tuesday", exercises: [tueRun], notes: weekNum <= 17 ? "5K Prep Running" : weekNum <= 26 ? "Phase B: Sprint Day" : "Recovery" },
                         { name: "Upper Body + Shoulders", day: "Wednesday", exercises: session2, notes: "Press + Pull + Shoulder Health" },
-                        { name: "Easy Run", day: "Thursday", exercises: [thuRun], notes: "Recovery run — easy effort only" },
+                        { name: "Easy Run", day: "Thursday", exercises: [thuRun], notes: weekNum >= 18 && weekNum <= 26 ? "Easy jog 30-40min max — recovery only" : "Recovery run — easy effort only" },
                         { name: "Hinge Day + Volume", day: "Friday", exercises: session3, notes: "Trap Bar DL + RDL + Bench Volume" },
                         { name: saturdayName, day: "Saturday", exercises: saturdayExercises, notes: saturdayNotes, isPlyoTestDay: satHasPlyoTest }
                     ];
@@ -1101,6 +1341,15 @@
 
                         // Generate completely fresh sessions for this week/phase
                         const freshSessions = generateSessions(week.weekNum, mesoIndex, volume, isDeload, weekInBlock, isRecovery);
+
+                        // ═══ PHASE C (weeks 27+): full 7-session rebuild — no 5K overlay ═══
+                        if (week.weekNum >= 27) {
+                            week.sessions = freshSessions.map((fresh, i) => ({
+                                ...fresh,
+                                exercises: mergeCompletionState(fresh.exercises, week.sessions[i]?.exercises || [])
+                            }));
+                            return;
+                        }
 
                         // --- Monday (index 0): Squat Day + Hamstring + Plyos ---
                         if (week.sessions[0]) {
@@ -1172,11 +1421,38 @@
                     return savedData;
                 };
 
-                // ── Force-fix goals: remove Half Marathon, ensure 5K Race present ─────────
+                // ── Force-fix goals: remove Half Marathon/Mile Time, migrate old targets, ensure 5K + 40yd ─────────
                 const migrateGoals = (savedData) => {
                     if (!savedData || !savedData.goals) return savedData;
-                    // Remove Half Marathon
+                    // Remove Half Marathon and Mile Time
                     savedData.goals = savedData.goals.filter(g => g.name !== "Half Marathon" && g.name !== "Mile Time");
+
+                    // Migrate Trap Bar DL target: 405 → 450 (for any saved data still on old target)
+                    const trapBar = savedData.goals.find(g => g.name === "Trap Bar DL");
+                    if (trapBar && trapBar.target === 405) trapBar.target = 450;
+
+                    // Migrate Bench Press target: 255 → 275
+                    const bench = savedData.goals.find(g => g.name === "Bench Press");
+                    if (bench && bench.target === 255) bench.target = 275;
+
+                    // Migrate 30yd Dash → 40yd Dash (rename + new target/current)
+                    const dashIdx = savedData.goals.findIndex(g => g.name === "30yd Dash");
+                    if (dashIdx !== -1) {
+                        savedData.goals[dashIdx] = {
+                            name: "40yd Dash", target: 5.0, current: 5.3, unit: "sec",
+                            icon: "SP", higherIsBetter: false
+                        };
+                    }
+
+                    // Ensure 40yd Dash goal exists (add if missing)
+                    const has40yd = savedData.goals.some(g => g.name === "40yd Dash");
+                    if (!has40yd) {
+                        savedData.goals.push({
+                            name: "40yd Dash", target: 5.0, current: 5.3, unit: "sec",
+                            icon: "SP", higherIsBetter: false
+                        });
+                    }
+
                     // Add 5K Race if missing
                     const has5K = savedData.goals.some(g => g.name === "5K Race");
                     if (!has5K) {
@@ -1674,6 +1950,16 @@
                                                         <p className="text-sm font-bold font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏃 5K Prep Active — Running sessions modified for Apr 30 race</p>
                                                     </div>
                                                 )}
+                                                {E1RM_CHECK_WEEKS[week.weekNum] && (
+                                                    <div className="mt-3 p-3 rounded-lg border" style={{background:'rgba(5,150,105,0.12)', borderColor:'#059669'}}>
+                                                        <p className="text-sm font-bold" style={{color:'#064E3B', fontFamily:'Arial,sans-serif'}}>💪 e1RM Check-In Week — AMRAP: {E1RM_CHECK_WEEKS[week.weekNum].join(' · ')}</p>
+                                                    </div>
+                                                )}
+                                                {E1RM_PRIMER_WEEKS.includes(week.weekNum) && (
+                                                    <div className="mt-3 p-3 rounded-lg border" style={{background:'rgba(217,119,6,0.12)', borderColor:'#D97706'}}>
+                                                        <p className="text-sm font-bold" style={{color:'#78350F', fontFamily:'Arial,sans-serif'}}>🎯 Primer Week — Rehearse max with light singles (Sq/Bn/TrapBar)</p>
+                                                    </div>
+                                                )}
                                                 <div className="flex gap-4 mt-4">
                                                     <div className="bg-white rounded-lg p-4 flex-1"><p className="text-xs text-gray-600">Volume</p><p className="text-2xl font-bold text-blue-600">{week.volume}/10</p></div>
                                                     <div className="bg-white rounded-lg p-4 flex-1"><p className="text-xs text-gray-600">Intensity</p><p className="text-2xl font-bold text-red-600">{week.intensity}/10</p></div>
@@ -1875,6 +2161,18 @@
                                             {fiveKOverlay[week.weekNum] && (
                                                 <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
                                                     <p className="text-sm font-bold font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏃 5K Prep Week — Running sessions modified for Apr 30 race · Strength stays unchanged</p>
+                                                </div>
+                                            )}
+                                            {E1RM_CHECK_WEEKS[week.weekNum] && (
+                                                <div className="mb-4 p-3 border-2 rounded-lg" style={{background:'rgba(5,150,105,0.08)', borderColor:'#059669'}}>
+                                                    <p className="text-sm font-bold" style={{color:'#064E3B', fontFamily:'Arial,sans-serif'}}>💪 e1RM CHECK-IN WEEK — Lift(s): {E1RM_CHECK_WEEKS[week.weekNum].join(' · ')}</p>
+                                                    <p className="text-xs mt-1" style={{color:'#065F46'}}>Last working set = AMRAP (reps to technical failure). Log the result, then open the 1RM Calc tab to update your estimated max. Never AMRAP above 6 reps — if your prescribed weight allows more than that, add weight instead.</p>
+                                                </div>
+                                            )}
+                                            {E1RM_PRIMER_WEEKS.includes(week.weekNum) && (
+                                                <div className="mb-4 p-3 border-2 rounded-lg" style={{background:'rgba(217,119,6,0.08)', borderColor:'#D97706'}}>
+                                                    <p className="text-sm font-bold" style={{color:'#78350F', fontFamily:'Arial,sans-serif'}}>🎯 PRIMER WEEK — Week 50 (5 weeks out from Week 55 max test)</p>
+                                                    <p className="text-xs mt-1" style={{color:'#92400E'}}>Take 1 single at 87-93% on Squat, Bench, and Trap Bar DL this week. This is NOT an AMRAP — it's a rehearsal. Rate readiness on each attempt and use that feel to calibrate the Week 55 max attempts.</p>
                                                 </div>
                                             )}
                                             {session.isPlyoTestDay && (
