@@ -2316,14 +2316,63 @@
                                                         </div>
                                                     </div>
 
+                                                    {(() => {
+                                                        const liftToGoalName = {'Squat':'Squat','Bench Press':'Bench Press','Trap Bar Deadlift':'Trap Bar DL','Power Clean':'Power Clean'};
+                                                        const goalName = liftToGoalName[calcLift];
+                                                        if (!goalName || !data.goals) return null;
+                                                        const goal = data.goals.find(g => g.name === goalName);
+                                                        if (!goal) return null;
+                                                        const newPct = Math.min(Math.round((calcResult.avg / goal.target) * 100), 100);
+                                                        const oldPct = Math.min(Math.round((goal.current / goal.target) * 100), 100);
+                                                        const delta = newPct - oldPct;
+                                                        return (
+                                                            <div className="rounded-lg p-4 border-2" style={{background:'rgba(5,150,105,0.08)', borderColor:'#059669'}}>
+                                                                <p className="text-sm font-bold mb-2" style={{color:'#064E3B'}}>🎯 Goals Tab Preview — {goalName}</p>
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="flex-1">
+                                                                        <p className="text-xs" style={{color:'#565A5C'}}>Current → New</p>
+                                                                        <p className="text-lg font-bold" style={{color:'#064E3B'}}>{goal.current} → {calcResult.avg} lbs</p>
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <p className="text-xs" style={{color:'#565A5C'}}>Progress toward {goal.target} lb goal</p>
+                                                                        <p className="text-lg font-bold" style={{color:'#064E3B'}}>{oldPct}% → {newPct}% {delta !== 0 && <span style={{color: delta > 0 ? '#059669' : '#DC2626'}}>({delta > 0 ? '+' : ''}{delta}%)</span>}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <p className="text-xs mt-2" style={{color:'#065F46'}}>Clicking Update below will sync this new e1RM to the Goals tab automatically.</p>
+                                                            </div>
+                                                        );
+                                                    })()}
+
                                                     <div className="flex gap-4">
                                                         <button onClick={() => {
                                                             const newData = {...data};
                                                             if (!newData.oneRepMaxes) newData.oneRepMaxes = {...ONE_RM};
                                                             const prev = newData.oneRepMaxes[calcLift];
                                                             newData.oneRepMaxes[calcLift] = calcResult.avg;
+
+                                                            // ═══ SYNC TO GOALS TAB ═══════════════════════════════════
+                                                            // 1RM Calc lift names → Goals tab names (Trap Bar naming differs)
+                                                            const liftToGoalName = {
+                                                                'Squat': 'Squat',
+                                                                'Bench Press': 'Bench Press',
+                                                                'Trap Bar Deadlift': 'Trap Bar DL',
+                                                                'Power Clean': 'Power Clean'
+                                                            };
+                                                            const goalName = liftToGoalName[calcLift];
+                                                            let goalSyncMsg = '';
+                                                            if (goalName && newData.goals) {
+                                                                const goalIdx = newData.goals.findIndex(g => g.name === goalName);
+                                                                if (goalIdx !== -1) {
+                                                                    const prevGoalCurrent = newData.goals[goalIdx].current;
+                                                                    newData.goals[goalIdx].current = calcResult.avg;
+                                                                    const target = newData.goals[goalIdx].target;
+                                                                    const pctComplete = Math.round((calcResult.avg / target) * 100);
+                                                                    goalSyncMsg = '\n\n✓ Goals tab updated: ' + goalName + ' ' + prevGoalCurrent + ' → ' + calcResult.avg + ' lbs (' + pctComplete + '% of ' + target + ' lb target)';
+                                                                }
+                                                            }
+
                                                             setData(newData);
-                                                            alert(calcLift + ' 1RM updated: ' + prev + ' → ' + calcResult.avg + ' lbs\n\nNote: This updates your tracked 1RM. The program weights are based on the ONE_RM constant in the code — to recalculate all program weights, update ONE_RM in the source file and redeploy.');
+                                                            alert(calcLift + ' 1RM updated: ' + prev + ' → ' + calcResult.avg + ' lbs' + goalSyncMsg + '\n\nNote: Program weights for future sessions use the ONE_RM constant in the code. To recalculate ALL program prescriptions from this new e1RM, update ONE_RM in the source file and redeploy.');
                                                         }} className="flex-1 py-3 rounded-lg text-white font-bold" style={{background:'#00A3A3'}}>
                                                             Update {calcLift} 1RM → {calcResult.avg} lbs
                                                         </button>
