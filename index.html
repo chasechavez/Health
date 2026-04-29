@@ -1558,6 +1558,29 @@
 
                 const migrateData = (savedData) => {
                     if (!savedData || !savedData.weeks) return savedData;
+
+                    // Step 0: STRUCTURAL INTEGRITY — heal any corruption from old saved
+                    // versions before any other migration step touches the data. Ensures
+                    // every week has a sessions array and every session has an exercises
+                    // array, so downstream code can safely call .some()/.forEach()/.reduce().
+                    if (!Array.isArray(savedData.weeks)) {
+                        savedData.weeks = [];
+                    }
+                    savedData.weeks.forEach((week, weekIdx) => {
+                        if (!week || typeof week !== 'object') {
+                            savedData.weeks[weekIdx] = { weekNum: weekIdx + 1, sessions: [] };
+                            return;
+                        }
+                        if (!Array.isArray(week.sessions)) week.sessions = [];
+                        week.sessions.forEach((session, sessIdx) => {
+                            if (!session || typeof session !== 'object') {
+                                week.sessions[sessIdx] = { name: 'Session', day: '', exercises: [], notes: '' };
+                                return;
+                            }
+                            if (!Array.isArray(session.exercises)) session.exercises = [];
+                        });
+                    });
+
                     // Step 1: Add Daily Mile to lifting days if missing
                     const firstMonday = savedData.weeks[0]?.sessions[0]?.exercises;
                     const hasDailyMile = firstMonday?.some(ex => ex.name === "Daily Mile");
@@ -2669,6 +2692,7 @@
                     };
 
                     const calcSessionVolume = (session) => {
+                        if (!session || !Array.isArray(session.exercises)) return 0;
                         return session.exercises.reduce((total, ex) => {
                             if (ex.completed && !ex.isRun && ex.weight && ex.weight !== 'BW' && ex.weight !== '') {
                                 const w = parseFloat(ex.weight) || 0;
@@ -2680,7 +2704,7 @@
                         }, 0);
                     };
                     const calcWeekVolume = (weekIdx) => {
-                        if (!data.weeks[weekIdx]) return 0;
+                        if (!data.weeks[weekIdx] || !Array.isArray(data.weeks[weekIdx].sessions)) return 0;
                         return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcSessionVolume(sess), 0);
                     };
                     const calcTotalVolume = () => data.weeks.reduce((total, _, idx) => total + calcWeekVolume(idx), 0);
@@ -2689,6 +2713,7 @@
                     // Prescribed-volume variants ignore ex.completed — show planned tonnage
                     // for ALL weeks (including future), not just done work.
                     const calcPrescribedSessionVolume = (session) => {
+                        if (!session || !Array.isArray(session.exercises)) return 0;
                         return session.exercises.reduce((total, ex) => {
                             if (!ex.isRun && ex.weight && ex.weight !== 'BW' && ex.weight !== '') {
                                 const w = parseFloat(ex.weight) || 0;
@@ -2700,7 +2725,7 @@
                         }, 0);
                     };
                     const calcPrescribedWeekVolume = (weekIdx) => {
-                        if (!data.weeks[weekIdx]) return 0;
+                        if (!data.weeks[weekIdx] || !Array.isArray(data.weeks[weekIdx].sessions)) return 0;
                         return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcPrescribedSessionVolume(sess), 0);
                     };
 
@@ -2769,18 +2794,19 @@
                         });
                     };
 
-                    const currentSessionVolume = data.weeks[currentWeek] ? calcSessionVolume(data.weeks[currentWeek].sessions[currentSession]) : 0;
+                    const currentSessionVolume = data.weeks[currentWeek] && data.weeks[currentWeek].sessions && data.weeks[currentWeek].sessions[currentSession] ? calcSessionVolume(data.weeks[currentWeek].sessions[currentSession]) : 0;
                     const currentWeekVolume = calcWeekVolume(currentWeek);
                     const totalVolume = calcTotalVolume();
 
                     const calcSessionMileage = (session) => {
+                        if (!session || !Array.isArray(session.exercises)) return 0;
                         return session.exercises.reduce((total, ex) => {
                             if (ex.completed && ex.mileage) return total + ex.mileage;
                             return total;
                         }, 0);
                     };
                     const calcWeekMileage = (weekIdx) => {
-                        if (!data.weeks[weekIdx]) return 0;
+                        if (!data.weeks[weekIdx] || !Array.isArray(data.weeks[weekIdx].sessions)) return 0;
                         return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcSessionMileage(sess), 0);
                     };
                     const calcTotalMileage = () => data.weeks.reduce((total, _, idx) => total + calcWeekMileage(idx), 0);
@@ -2791,13 +2817,14 @@
 
                     // ── CONTACT TRACKING (Plyo v2) ──────────────────────────────────────────
                     const calcSessionContacts = (session) => {
+                        if (!session || !Array.isArray(session.exercises)) return 0;
                         return session.exercises.reduce((total, ex) => total + (ex.contacts || 0), 0);
                     };
                     const calcWeekContacts = (weekIdx) => {
-                        if (!data.weeks[weekIdx]) return 0;
+                        if (!data.weeks[weekIdx] || !Array.isArray(data.weeks[weekIdx].sessions)) return 0;
                         return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcSessionContacts(sess), 0);
                     };
-                    const currentSessionContacts = data.weeks[currentWeek] ? calcSessionContacts(data.weeks[currentWeek].sessions[currentSession]) : 0;
+                    const currentSessionContacts = data.weeks[currentWeek] && data.weeks[currentWeek].sessions && data.weeks[currentWeek].sessions[currentSession] ? calcSessionContacts(data.weeks[currentWeek].sessions[currentSession]) : 0;
                     const currentWeekContacts = calcWeekContacts(currentWeek);
                     // Phase contacts: sum all weeks in same mesocycle
                     const currentMesoIndex = Math.floor(currentWeek / 4);
