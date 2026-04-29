@@ -1653,8 +1653,6 @@
                     const [calcWeight, setCalcWeight] = useState('');
                     const [calcReps, setCalcReps] = useState('');
                     const [calcResult, setCalcResult] = useState(null);
-                    const macroChartRef = useRef(null);
-                    const macroChartInstance = useRef(null);
                     // Athletic Profile Radar
                     const radarRef = useRef(null);
                     const radarInstance = useRef(null);
@@ -1686,6 +1684,9 @@
                         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
                     });
                     const [weightValue, setWeightValue] = useState('');
+                    // Recent-entries panel collapse states (for compactness)
+                    const [showAllWeightEntries, setShowAllWeightEntries] = useState(false);
+                    const [showAllSleepEntries, setShowAllSleepEntries] = useState(false);
                     const syncTimeoutRef = useRef(null);
                     const isInitialLoad = useRef(true);
                     const lastRemoteUpdate = useRef(0);
@@ -2038,24 +2039,6 @@
                             });
                         };
                     }, [view, data]);
-
-                    useEffect(() => {
-                        if (view === 'overview' && macroChartRef.current && window.Chart) {
-                            if (macroChartInstance.current) macroChartInstance.current.destroy();
-                            macroChartInstance.current = new Chart(macroChartRef.current.getContext('2d'), {
-                                type: 'line',
-                                data: {
-                                    labels: Array.from({length: TOTAL_WEEKS}, (_, i) => `W${i+1}`),
-                                    datasets: [
-                                        { label: 'Volume', data: volumeData, borderColor: 'rgba(59, 130, 246, 1)', fill: true, backgroundColor: 'rgba(59, 130, 246, 0.2)', tension: 0.4 },
-                                        { label: 'Intensity', data: intensityData, borderColor: 'rgba(239, 68, 68, 1)', fill: true, backgroundColor: 'rgba(239, 68, 68, 0.2)', tension: 0.4 }
-                                    ]
-                                },
-                                options: { responsive: true, scales: { y: { min: 0, max: 11 } } }
-                            });
-                        }
-                        return () => { if (macroChartInstance.current) macroChartInstance.current.destroy(); };
-                    }, [view, currentWeek]);
 
                     // ═══ VOLUME TAB · PERIODIZATION WAVE ════════════════════════════════
                     // Weekly tonnage line/area chart with mesocycle phase bands behind,
@@ -2639,6 +2622,52 @@
                     const resetData = () => { if (confirm('Reset all progress on all devices?')) { localStorage.removeItem('chaseTraining56Week2026'); dataRef.set(getDefaultData()).then(() => window.location.reload()); } };
                     const forceSync = () => { setSyncStatus('syncing'); dataRef.set({...data, currentWeekIndex: currentWeek, lastUpdated: Date.now()}).then(() => { setSyncStatus('synced'); setLastSync(Date.now()); }).catch(() => setSyncStatus('error')); };
 
+                    // ── Cleanup: removes incomplete exercises from past weeks (strictly < today's week).
+                    // Use case: program updates retroactively added exercises (Nordic curls, RDLs, plyos
+                    // periodization, etc.) to weeks the user had already completed. Those exercises are
+                    // unchecked because they didn't exist when the session was done — but they pollute
+                    // completion stats and the prescribed-vs-actual wave chart. This wipes them so the
+                    // historical record reflects what was actually performed.
+                    const cleanupPastIncomplete = () => {
+                        const todayWk = getTodayWeek();
+                        let removedCount = 0;
+                        const weeksAffected = new Set();
+                        data.weeks.forEach(week => {
+                            if (week.weekNum >= todayWk) return;
+                            week.sessions.forEach(sess => {
+                                sess.exercises.forEach(ex => {
+                                    if (!ex.completed) {
+                                        removedCount++;
+                                        weeksAffected.add(week.weekNum);
+                                    }
+                                });
+                            });
+                        });
+                        if (removedCount === 0) {
+                            alert('No incomplete exercises found in past weeks. Nothing to clean up.');
+                            return;
+                        }
+                        const weekList = Array.from(weeksAffected).sort((a,b)=>a-b);
+                        const minW = weekList[0];
+                        const maxW = weekList[weekList.length - 1];
+                        const weekRange = minW === maxW ? 'week ' + minW : 'weeks ' + minW + '–' + maxW;
+                        const msg = 'Remove ' + removedCount + ' unchecked exercise' + (removedCount === 1 ? '' : 's') + ' from ' + weekList.length + ' past ' + (weekList.length === 1 ? 'week' : 'weeks') + ' (' + weekRange + ')?\n\nThese were likely added by program updates after the workouts were already done. Cannot be undone.';
+                        if (!confirm(msg)) return;
+                        const newData = {...data};
+                        newData.weeks = newData.weeks.map(week => {
+                            if (week.weekNum >= todayWk) return week;
+                            return {
+                                ...week,
+                                sessions: week.sessions.map(sess => ({
+                                    ...sess,
+                                    exercises: sess.exercises.filter(ex => ex.completed)
+                                }))
+                            };
+                        });
+                        setData(newData);
+                        alert('Cleaned up ' + removedCount + ' exercise' + (removedCount === 1 ? '' : 's') + '. Volume calcs now reflect actual completed work.');
+                    };
+
                     const calcSessionVolume = (session) => {
                         return session.exercises.reduce((total, ex) => {
                             if (ex.completed && !ex.isRun && ex.weight && ex.weight !== 'BW' && ex.weight !== '') {
@@ -2794,7 +2823,10 @@
                     // 5K Race countdown
                     const raceDate = new Date('2026-04-30');
                     const today = new Date();
-                    const daysToRace = Math.max(0, Math.ceil((raceDate - today) / (1000 * 60 * 60 * 24)));
+                    const rawDaysToRace = Math.ceil((raceDate - today) / (1000 * 60 * 60 * 24));
+                    const daysToRace = Math.max(0, rawDaysToRace);
+                    // Race is over once today is past Apr 30 — banner hides cleanly
+                    const isRaceUpcoming = rawDaysToRace >= 0;
 
                     // Max Out countdown — Week 53 starts Dec 31 2026 (Testing & Realization block)
                     const maxOutDate = new Date('2026-12-31');
@@ -2814,7 +2846,7 @@
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
                                             <button onClick={forceSync} className="px-4 py-2 text-white rounded-lg text-sm font-semibold btn-primary" style={{background:'#005F87'}}>Sync</button>
-                                            {daysToRace <= 75 && (
+                                            {isRaceUpcoming && daysToRace <= 75 && (
                                                 <div className="text-white px-4 py-2 rounded-lg text-sm font-bold text-right" style={{background:'#005F87', borderLeft:'3px solid #00A3A3'}}>
                                                     🏁 5K Race in {daysToRace} days<br/>
                                                     <span className="text-xs opacity-90">Apr 30 · Sub-21:00</span>
@@ -2843,12 +2875,12 @@
 
                                 {view === 'overview' && (
                                     <div className="space-y-6">
-                                        {daysToRace <= 75 && (
+                                        {isRaceUpcoming && daysToRace <= 75 && (
                                             <div className="glass rounded-xl shadow-lg p-6 border-2 border-blue-500 bg-gradient-to-r from-blue-50 to-teal-50" style={{background:'linear-gradient(135deg,#e6f2f8,#e0f5f5)'}}>
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <h3 className="text-2xl font-bold font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏁 5K Race — April 30</h3>
-                                                        <p className="font-semibold" className="mt-1" style={{color:'#00A3A3'}}>Target: Sub-21:00 · Current PR: 23:00</p>
+                                                        <p className="font-semibold mt-1" style={{color:'#00A3A3'}}>Target: Sub-21:00 · Current PR: 23:00</p>
                                                         <p className="text-sm text-gray-600 mt-2">Thu Apr 30 · Splits: Mile 1 @ 7:00 · Mile 2 @ 6:55 · Mile 3 @ 6:40</p>
                                                     </div>
                                                     <div className="text-center">
@@ -2903,27 +2935,16 @@
                                                     </div>
                                                 </div>
                                                 <div className="mt-4">
-                                                    <div className="flex justify-between text-xs text-blue-700" className="mb-1" style={{color:'#005F87'}}>
+                                                    <div className="flex justify-between text-xs mb-1" style={{color:'#005F87'}}>
                                                         <span>Progress through program</span>
                                                         <span>{Math.round((currentWeek / TOTAL_WEEKS) * 100)}%</span>
                                                     </div>
                                                     <div className="w-full h-3 bg-blue-50 rounded-full overflow-hidden">
-                                                        <div className="h-full rounded-full transition-all brand-progress-bar" style={{background:'linear-gradient(90deg,#005F87,#00A3A3)'}}
-                                                            style={{width: Math.round((currentWeek / TOTAL_WEEKS) * 100) + '%'}}></div>
+                                                        <div className="h-full rounded-full transition-all brand-progress-bar" style={{background:'linear-gradient(90deg,#005F87,#00A3A3)', width: Math.round((currentWeek / TOTAL_WEEKS) * 100) + '%'}}></div>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="glass rounded-xl shadow-lg p-6">
-                                            <h2 className="text-2xl font-bold text-gray-800 mb-4">56-Week Periodization</h2>
-                                            <div className="bg-white rounded-lg p-4 mb-6"><canvas ref={macroChartRef}></canvas></div>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <div className="bg-blue-50 rounded-lg p-4"><p className="text-sm text-gray-600">Total</p><p className="text-3xl font-bold text-blue-600">{TOTAL_WEEKS}</p></div>
-                                                <div className="bg-green-50 rounded-lg p-4"><p className="text-sm text-gray-600">Current</p><p className="text-3xl font-bold text-green-600">{currentWeek + 1}</p></div>
-                                                <div className="bg-blue-50 rounded-lg p-4"><p className="text-sm text-gray-600">Remaining</p><p className="text-3xl font-bold text-blue-700" style={{color:'#005F87'}}>{TOTAL_WEEKS - currentWeek}</p></div>
-                                                <div className="bg-orange-50 rounded-lg p-4"><p className="text-sm text-gray-600">Progress</p><p className="text-3xl font-bold font-semibold" style={{color:'#005F87'}}>{Math.round((currentWeek / TOTAL_WEEKS) * 100)}%</p></div>
-                                            </div>
-                                        </div>
                                         <div className="glass rounded-xl shadow-lg p-6">
                                             <h3 className="text-xl font-bold text-gray-800 mb-4">Week Navigator</h3>
                                             <div className="grid grid-cols-7 md:grid-cols-14 gap-1">
@@ -2953,7 +2974,7 @@
                                             <h3 className="text-xl font-bold text-gray-800 mb-4">Current Block</h3>
                                             <div className={`rounded-lg p-6 ${week.isRecovery ? 'bg-gradient-to-r from-green-50 to-emerald-50' : week.isDeload ? 'bg-gradient-to-r from-yellow-50 to-orange-50' : 'bg-gradient-to-r from-purple-50 to-blue-50'}`}>
                                                 <p className="text-sm text-gray-600 mb-2">Week {week.weekNum} — Mesocycle {week.mesocycle}, Week {week.weekInBlock} &nbsp;·&nbsp; <span className="font-semibold text-blue-700" style={{color:'#005F87'}}>{getWeekLabel(week.weekNum)}</span></p>
-                                                <h4 className="text-2xl font-bold text-blue-800" className="mb-2" style={{color:'#004668'}}>{week.phase}</h4>
+                                                <h4 className="text-2xl font-bold mb-2" style={{color:'#004668'}}>{week.phase}</h4>
                                                 <p className="text-gray-700 font-medium">{week.trainingEmphasis}</p>
                                                 <p className="text-gray-600 text-sm mt-2">{week.focus}</p>
                                                 {fiveKOverlay[week.weekNum] && (
@@ -3242,6 +3263,45 @@
 
                                 {view === 'volume' && (
                                     <div className="space-y-6">
+                                        {/* ═══ CLEANUP BANNER (auto-hides when nothing to clean) ═══ */}
+                                        {(() => {
+                                            const todayWk = getTodayWeek();
+                                            let count = 0;
+                                            const weeksAffected = new Set();
+                                            data.weeks.forEach(week => {
+                                                if (week.weekNum >= todayWk) return;
+                                                week.sessions.forEach(sess => {
+                                                    sess.exercises.forEach(ex => {
+                                                        if (!ex.completed) {
+                                                            count++;
+                                                            weeksAffected.add(week.weekNum);
+                                                        }
+                                                    });
+                                                });
+                                            });
+                                            if (count === 0) return null;
+                                            const weekList = Array.from(weeksAffected).sort((a,b) => a-b);
+                                            const minW = weekList[0];
+                                            const maxW = weekList[weekList.length - 1];
+                                            const weekRange = minW === maxW ? 'W' + minW : 'W' + minW + '–W' + maxW;
+                                            return (
+                                                <div className="rounded-xl shadow p-4" style={{background:'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(217,119,6,0.08))', border:'2px solid rgba(217,119,6,0.30)'}}>
+                                                    <div className="flex items-start justify-between flex-wrap gap-3">
+                                                        <div className="flex items-start gap-3 flex-1">
+                                                            <span className="text-2xl flex-shrink-0">⚠️</span>
+                                                            <div>
+                                                                <p className="font-bold text-sm" style={{color:'#78350F', letterSpacing:'-0.01em'}}>{count} incomplete exercise{count === 1 ? '' : 's'} across {weekList.length} past {weekList.length === 1 ? 'week' : 'weeks'} ({weekRange})</p>
+                                                                <p className="text-xs mt-1" style={{color:'#78350F', lineHeight:'1.4'}}>Likely added by program updates after those workouts were already done — they're polluting your volume and ACWR data. Clean them up so the historical record reflects what you actually performed.</p>
+                                                            </div>
+                                                        </div>
+                                                        <button onClick={cleanupPastIncomplete} className="px-4 py-2 rounded-lg font-bold text-white whitespace-nowrap" style={{background:'#D97706', letterSpacing:'0.02em'}}>
+                                                            Clean Up Past Weeks
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+
                                         <div className="glass rounded-xl shadow-lg p-6">
                                             <h2 className="text-2xl font-bold text-gray-800 mb-2">Training Volume Calculator</h2>
                                             <p className="text-sm text-gray-500 mb-6">Total volume calculated as Sets x Reps x Weight for all resistance exercises</p>
@@ -3257,10 +3317,87 @@
                                                     <p className="text-sm text-blue-600">lbs lifted</p>
                                                 </div>
                                                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border-2 border-green-300">
-                                                    <p className="text-xs font-bold text-teal-700" className="uppercase mb-1" style={{color:'#00A3A3'}}>Today's Session</p>
+                                                    <p className="text-xs font-bold uppercase mb-1" style={{color:'#00A3A3'}}>Today's Session</p>
                                                     <p className="text-5xl font-bold text-green-600">{(currentSessionVolume/1000).toFixed(1)}k</p>
                                                     <p className="text-sm text-green-600">lbs lifted</p>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        {/* ═══ CLEAN UP PAST WEEKS UTILITY ═══════════════════════════ */}
+                                        <div className="glass rounded-xl shadow-lg p-4 border" style={{borderColor:'rgba(217,119,6,0.25)', background:'rgba(251,191,36,0.04)'}}>
+                                            <div className="flex items-start justify-between flex-wrap gap-3">
+                                                <div className="flex-1 min-w-0" style={{minWidth:'240px'}}>
+                                                    <h3 className="text-sm font-bold flex items-center gap-2" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>
+                                                        <span style={{color:'#D97706'}}>⚙</span> Clean Up Past Weeks
+                                                    </h3>
+                                                    <p className="text-xs mt-1" style={{color:'#565A5C', lineHeight:'1.4'}}>Removes any unchecked exercises from weeks <span className="font-bold">strictly before today</span> (W1–W{Math.max(0, getTodayWeek() - 1)}). Use after program updates that add exercises to weeks already completed — keeps your wave / ACWR / matrix views accurate without phantom "missed" work.</p>
+                                                    {(() => {
+                                                        const todayWeek = getTodayWeek();
+                                                        let toRemove = 0;
+                                                        let weeksAffected = 0;
+                                                        for (let i = 0; i < todayWeek - 1 && i < (data.weeks || []).length; i++) {
+                                                            if (!data.weeks[i]) continue;
+                                                            let weekHasRemoval = false;
+                                                            data.weeks[i].sessions.forEach(sess => {
+                                                                sess.exercises.forEach(ex => {
+                                                                    if (!ex.completed) { toRemove++; weekHasRemoval = true; }
+                                                                });
+                                                            });
+                                                            if (weekHasRemoval) weeksAffected++;
+                                                        }
+                                                        if (toRemove === 0) {
+                                                            return <p className="text-xs mt-2 font-semibold" style={{color:'#059669'}}>✓ Nothing to clean — all past weeks are tidy.</p>;
+                                                        }
+                                                        return <p className="text-xs mt-2 font-semibold" style={{color:'#D97706'}}>Currently: {toRemove} unchecked exercises across {weeksAffected} past {weeksAffected === 1 ? 'week' : 'weeks'} would be removed.</p>;
+                                                    })()}
+                                                </div>
+                                                <button onClick={() => {
+                                                    const todayWeek = getTodayWeek();
+                                                    if (todayWeek <= 1) {
+                                                        alert('No past weeks to clean — program hasn\'t started yet or is in W1.');
+                                                        return;
+                                                    }
+                                                    let toRemove = 0;
+                                                    let weeksAffected = 0;
+                                                    for (let i = 0; i < todayWeek - 1 && i < data.weeks.length; i++) {
+                                                        if (!data.weeks[i]) continue;
+                                                        let weekHasRemoval = false;
+                                                        data.weeks[i].sessions.forEach(sess => {
+                                                            sess.exercises.forEach(ex => {
+                                                                if (!ex.completed) { toRemove++; weekHasRemoval = true; }
+                                                            });
+                                                        });
+                                                        if (weekHasRemoval) weeksAffected++;
+                                                    }
+                                                    if (toRemove === 0) {
+                                                        alert('Nothing to clean — all past weeks are already tidy.');
+                                                        return;
+                                                    }
+                                                    if (!confirm(
+                                                        'Clean Up Past Weeks\n\n' +
+                                                        'This will permanently remove ' + toRemove + ' unchecked exercises from ' + weeksAffected + ' past ' + (weeksAffected === 1 ? 'week' : 'weeks') + ' (W1 through W' + (todayWeek - 1) + ').\n\n' +
+                                                        '✓ Completed exercises will be kept\n' +
+                                                        '✓ Current week (W' + todayWeek + ') and future weeks are not touched\n' +
+                                                        '✗ Cannot be undone\n\n' +
+                                                        'Continue?'
+                                                    )) return;
+                                                    const newData = {...data};
+                                                    newData.weeks = newData.weeks.map((week, i) => {
+                                                        if (i >= todayWeek - 1) return week;
+                                                        return {
+                                                            ...week,
+                                                            sessions: week.sessions.map(sess => ({
+                                                                ...sess,
+                                                                exercises: sess.exercises.filter(ex => ex.completed)
+                                                            }))
+                                                        };
+                                                    });
+                                                    setData(newData);
+                                                    alert('Removed ' + toRemove + ' unchecked exercises from ' + weeksAffected + ' past ' + (weeksAffected === 1 ? 'week' : 'weeks') + '.\n\nWave / ACWR / matrix views should now accurately reflect what you actually trained.');
+                                                }} className="px-5 py-2 rounded-lg font-bold text-white shrink-0" style={{background:'#D97706'}}>
+                                                    Clean Up
+                                                </button>
                                             </div>
                                         </div>
 
@@ -3366,7 +3503,7 @@
                                                         <div style={{minWidth:'780px'}}>
                                                             {/* Header row with week labels */}
                                                             <div className="flex items-end" style={{borderBottom:'1px solid rgba(0,95,135,0.12)', paddingBottom:'4px', marginBottom:'4px'}}>
-                                                                <div style={{width:'108px', flexShrink:0}} className="text-[10px] font-bold uppercase" style={{color:'#565A5C', letterSpacing:'0.06em'}}>Movement</div>
+                                                                <div style={{width:'108px', flexShrink:0, color:'#565A5C', letterSpacing:'0.06em'}} className="text-[10px] font-bold uppercase">Movement</div>
                                                                 <div className="flex-1 flex">
                                                                     {Array.from({length: TOTAL_WEEKS}).map((_, i) => (
                                                                         <div key={i} style={{flex:'1 1 0', minWidth:'12px'}} className="text-center">
@@ -3504,7 +3641,7 @@
                                             <h2 className="text-2xl font-bold text-gray-800 mb-6">Running Mileage Tracker</h2>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                                 <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border-2 border-green-400">
-                                                    <p className="text-xs font-bold text-teal-700" className="uppercase mb-1" style={{color:'#00A3A3'}}>Total Mileage</p>
+                                                    <p className="text-xs font-bold uppercase mb-1" style={{color:'#00A3A3'}}>Total Mileage</p>
                                                     <p className="text-5xl font-bold text-green-600">{totalMileage.toFixed(1)}</p>
                                                     <p className="text-sm text-green-600">miles</p>
                                                 </div>
@@ -3514,7 +3651,7 @@
                                                     <p className="text-sm text-blue-600">miles</p>
                                                 </div>
                                                 <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl p-6 border-2 border-blue-500">
-                                                    <p className="text-xs font-bold text-blue-800" className="uppercase mb-1" style={{color:'#004668'}}>Weekly Avg</p>
+                                                    <p className="text-xs font-bold uppercase mb-1" style={{color:'#004668'}}>Weekly Avg</p>
                                                     <p className="text-5xl font-bold text-blue-700" style={{color:'#005F87'}}>{avgWeeklyMileage}</p>
                                                     <p className="text-sm text-blue-700" style={{color:'#005F87'}}>miles/week</p>
                                                 </div>
@@ -3822,42 +3959,56 @@
 
                                         {/* ═══ RECENT WEIGHT ENTRIES ════════════════════════════════ */}
                                         <div className="glass rounded-xl shadow-lg p-6">
-                                            <h3 className="text-lg font-bold mb-4" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>Recent Weight Entries</h3>
                                             {(() => {
-                                                const log = (data.weightLog || []).slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 14);
-                                                if (log.length === 0) {
-                                                    return <p className="text-sm" style={{color:'#565A5C'}}>No weight logged yet.</p>;
-                                                }
+                                                const allLog = (data.weightLog || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+                                                const log = showAllWeightEntries ? allLog : allLog.slice(0, 3);
+                                                const hasMore = allLog.length > 3;
                                                 return (
-                                                    <div className="space-y-1">
-                                                        {log.map((e, idx) => {
-                                                            const w = parseFloat(e.weight);
-                                                            const dt = new Date(e.date + 'T00:00:00');
-                                                            const dateLabel = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                                                            // Compute delta vs prior entry
-                                                            const allSorted = (data.weightLog || []).slice().sort((a,b) => a.date.localeCompare(b.date));
-                                                            const myIdx = allSorted.findIndex(x => x.date === e.date);
-                                                            const prev = myIdx > 0 ? parseFloat(allSorted[myIdx - 1].weight) : null;
-                                                            const delta = prev !== null ? w - prev : null;
-                                                            return (
-                                                                <div key={idx} className="flex items-center justify-between py-2 px-3 rounded-lg" style={{background:'rgba(255,255,255,0.5)', borderLeft:'3px solid #005F87'}}>
-                                                                    <span className="text-sm font-semibold" style={{color:'#005F87'}}>{dateLabel}</span>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <span className="text-base font-bold" style={{color:'#005F87'}}>{w.toFixed(1)} <span className="text-xs font-normal" style={{color:'#565A5C'}}>lb</span></span>
-                                                                        {delta !== null && Math.abs(delta) >= 0.1 && (
-                                                                            <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{background: delta > 0 ? 'rgba(217,119,6,0.10)' : 'rgba(0,163,163,0.10)', color: delta > 0 ? '#D97706' : '#00A3A3'}}>{delta > 0 ? '+' : ''}{delta.toFixed(1)}</span>
-                                                                        )}
-                                                                        <button onClick={() => {
-                                                                            if (!confirm('Delete weight entry for ' + dateLabel + '?')) return;
-                                                                            const newData = {...data};
-                                                                            newData.weightLog = (newData.weightLog || []).filter(s => s.date !== e.date);
-                                                                            setData(newData);
-                                                                        }} className="text-xs px-2 py-1 rounded" style={{color:'#DC2626', background:'rgba(220,38,38,0.08)'}}>×</button>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                    <>
+                                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                                                            <h3 className="text-lg font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>Recent Weight Entries <span className="text-xs font-normal" style={{color:'#565A5C'}}>({allLog.length} total)</span></h3>
+                                                            {hasMore && (
+                                                                <button onClick={() => setShowAllWeightEntries(!showAllWeightEntries)}
+                                                                    className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
+                                                                    style={{color:'#005F87', background:'rgba(0,95,135,0.08)', border:'1px solid rgba(0,95,135,0.20)', letterSpacing:'0.04em'}}>
+                                                                    {showAllWeightEntries ? '▲ Show recent only' : '▼ Show all (' + allLog.length + ')'}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        {allLog.length === 0 ? (
+                                                            <p className="text-sm" style={{color:'#565A5C'}}>No weight logged yet.</p>
+                                                        ) : (
+                                                            <div className={`grid ${showAllWeightEntries ? 'grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1' : 'grid-cols-1 gap-y-1'}`}>
+                                                                {log.map((e, idx) => {
+                                                                    const w = parseFloat(e.weight);
+                                                                    const dt = new Date(e.date + 'T00:00:00');
+                                                                    const dateLabel = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                                                                    // Compute delta vs prior entry (chronologically)
+                                                                    const allSorted = (data.weightLog || []).slice().sort((a,b) => a.date.localeCompare(b.date));
+                                                                    const myIdx = allSorted.findIndex(x => x.date === e.date);
+                                                                    const prev = myIdx > 0 ? parseFloat(allSorted[myIdx - 1].weight) : null;
+                                                                    const delta = prev !== null ? w - prev : null;
+                                                                    return (
+                                                                        <div key={idx} className="flex items-center justify-between py-1.5 px-2.5 rounded" style={{background:'rgba(255,255,255,0.5)', borderLeft:'2px solid #005F87'}}>
+                                                                            <span className="text-xs font-semibold" style={{color:'#005F87'}}>{dateLabel}</span>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="text-sm font-bold" style={{color:'#005F87'}}>{w.toFixed(1)}<span className="text-[10px] font-normal ml-0.5" style={{color:'#565A5C'}}>lb</span></span>
+                                                                                {delta !== null && Math.abs(delta) >= 0.1 && (
+                                                                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{background: delta > 0 ? 'rgba(217,119,6,0.10)' : 'rgba(0,163,163,0.10)', color: delta > 0 ? '#D97706' : '#00A3A3'}}>{delta > 0 ? '+' : ''}{delta.toFixed(1)}</span>
+                                                                                )}
+                                                                                <button onClick={() => {
+                                                                                    if (!confirm('Delete weight entry for ' + dateLabel + '?')) return;
+                                                                                    const newData = {...data};
+                                                                                    newData.weightLog = (newData.weightLog || []).filter(s => s.date !== e.date);
+                                                                                    setData(newData);
+                                                                                }} className="text-xs leading-none px-1.5 py-0.5 rounded" style={{color:'#DC2626', background:'rgba(220,38,38,0.08)'}}>×</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </>
                                                 );
                                             })()}
                                         </div>
@@ -3998,39 +4149,53 @@
 
                                         {/* ═══ RECENT ENTRIES LIST ═════════════════════════════════ */}
                                         <div className="glass rounded-xl shadow-lg p-6">
-                                            <h3 className="text-lg font-bold mb-4" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>Recent Entries</h3>
                                             {(() => {
-                                                const log = (data.sleepLog || []).slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 14);
-                                                if (log.length === 0) {
-                                                    return <p className="text-sm" style={{color:'#565A5C'}}>No sleep logged yet. Use the form above to start tracking.</p>;
-                                                }
+                                                const allLog = (data.sleepLog || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+                                                const log = showAllSleepEntries ? allLog : allLog.slice(0, 3);
+                                                const hasMore = allLog.length > 3;
                                                 return (
-                                                    <div className="space-y-1">
-                                                        {log.map((e, idx) => {
-                                                            const h = parseFloat(e.hours) || 0;
-                                                            let color = '#565A5C';
-                                                            if (h >= 7.5) color = '#059669';
-                                                            else if (h >= 6) color = '#D97706';
-                                                            else color = '#DC2626';
-                                                            const dt = new Date(e.date + 'T00:00:00');
-                                                            const dateLabel = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                                                            return (
-                                                                <div key={idx} className="flex items-center justify-between py-2 px-3 rounded-lg" style={{background:'rgba(255,255,255,0.5)', borderLeft:'3px solid '+color}}>
-                                                                    <span className="text-sm font-semibold" style={{color:'#005F87'}}>{dateLabel}</span>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <span className="text-base font-bold" style={{color:color}}>{h.toFixed(1)}h</span>
-                                                                        {e.quality && <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{background:'rgba(0,95,135,0.08)', color:'#005F87'}}>Q{e.quality}/10</span>}
-                                                                        <button onClick={() => {
-                                                                            if (!confirm('Delete sleep entry for ' + dateLabel + '?')) return;
-                                                                            const newData = {...data};
-                                                                            newData.sleepLog = (newData.sleepLog || []).filter(s => s.date !== e.date);
-                                                                            setData(newData);
-                                                                        }} className="text-xs px-2 py-1 rounded" style={{color:'#DC2626', background:'rgba(220,38,38,0.08)'}}>×</button>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                    <>
+                                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                                                            <h3 className="text-lg font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>Recent Sleep Entries <span className="text-xs font-normal" style={{color:'#565A5C'}}>({allLog.length} total)</span></h3>
+                                                            {hasMore && (
+                                                                <button onClick={() => setShowAllSleepEntries(!showAllSleepEntries)}
+                                                                    className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
+                                                                    style={{color:'#005F87', background:'rgba(0,95,135,0.08)', border:'1px solid rgba(0,95,135,0.20)', letterSpacing:'0.04em'}}>
+                                                                    {showAllSleepEntries ? '▲ Show recent only' : '▼ Show all (' + allLog.length + ')'}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        {allLog.length === 0 ? (
+                                                            <p className="text-sm" style={{color:'#565A5C'}}>No sleep logged yet. Use the form above to start tracking.</p>
+                                                        ) : (
+                                                            <div className={`grid ${showAllSleepEntries ? 'grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1' : 'grid-cols-1 gap-y-1'}`}>
+                                                                {log.map((e, idx) => {
+                                                                    const h = parseFloat(e.hours) || 0;
+                                                                    let color = '#565A5C';
+                                                                    if (h >= 7.5) color = '#059669';
+                                                                    else if (h >= 6) color = '#D97706';
+                                                                    else color = '#DC2626';
+                                                                    const dt = new Date(e.date + 'T00:00:00');
+                                                                    const dateLabel = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                                                                    return (
+                                                                        <div key={idx} className="flex items-center justify-between py-1.5 px-2.5 rounded" style={{background:'rgba(255,255,255,0.5)', borderLeft:'2px solid '+color}}>
+                                                                            <span className="text-xs font-semibold" style={{color:'#005F87'}}>{dateLabel}</span>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="text-sm font-bold" style={{color:color}}>{h.toFixed(1)}h</span>
+                                                                                {e.quality && <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold" style={{background:'rgba(0,95,135,0.08)', color:'#005F87'}}>Q{e.quality}</span>}
+                                                                                <button onClick={() => {
+                                                                                    if (!confirm('Delete sleep entry for ' + dateLabel + '?')) return;
+                                                                                    const newData = {...data};
+                                                                                    newData.sleepLog = (newData.sleepLog || []).filter(s => s.date !== e.date);
+                                                                                    setData(newData);
+                                                                                }} className="text-xs leading-none px-1.5 py-0.5 rounded" style={{color:'#DC2626', background:'rgba(220,38,38,0.08)'}}>×</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </>
                                                 );
                                             })()}
                                         </div>
