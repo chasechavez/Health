@@ -299,6 +299,8 @@
                 // via the 1RM Calculator tab. Updating an e1RM there automatically regenerates
                 // all 56 weeks of program weights from current capacity.
                 const ONE_RM = { 'Squat': 293, 'Bench Press': 213, 'Trap Bar Deadlift': 405, 'Power Clean': 165 };
+                const PROGRAM_VERSION = 'v4';
+                const computeRMHash = (rms) => JSON.stringify(['Squat','Bench Press','Trap Bar Deadlift','Power Clean'].map(k => (rms || ONE_RM)[k]));
 
                 // ═══ E1RM CHECK-IN SCHEDULE ═══════════════════════════════════════════════
                 // Scheduled AMRAP sets every ~8 weeks to re-estimate 1RM via Epley formula.
@@ -1342,7 +1344,9 @@
                     ],
                     weeks: generateAllWeeks(), lastUpdated: Date.now(),
                     sleepLog: [],
-                    weightLog: []
+                    weightLog: [],
+                    programVersion: PROGRAM_VERSION,
+                    rmHash: computeRMHash(ONE_RM)
                 });
 
                 // ── Force-regenerate all sessions with periodized weights ────────────────────
@@ -1558,6 +1562,9 @@
 
                 const migrateData = (savedData) => {
                     if (!savedData || !savedData.weeks) return savedData;
+                    // Deep clone so migration mutations never touch the original React state
+                    // (shallow spread like {...data} still shares nested week/session/exercise refs)
+                    savedData = JSON.parse(JSON.stringify(savedData));
 
                     // Step 0: STRUCTURAL INTEGRITY — heal any corruption from old saved
                     // versions before any other migration step touches the data. Ensures
@@ -1629,10 +1636,17 @@
                     if (!savedData.sleepLog) savedData.sleepLog = [];
                     // Step 2d: Ensure weightLog exists (bodyweight tracking)
                     if (!savedData.weightLog) savedData.weightLog = [];
-                    // Step 3: ALWAYS inject periodized plyos into Monday + sprint work into Saturday
-                    migratePlyoSprint(savedData);
+                    // Step 3: inject periodized plyos + sprint work — skip if program + e1RMs unchanged
+                    const rmHash = computeRMHash(savedData.oneRepMaxes);
+                    const versionMatch = savedData.programVersion === PROGRAM_VERSION && savedData.rmHash === rmHash;
+                    if (!versionMatch) {
+                        migratePlyoSprint(savedData);
+                    }
                     // Step 4: ALWAYS force-apply 5K overlay — guarantees weeks 7-16 are race-specific
-                    return migrate5KSessions(savedData);
+                    const result = versionMatch ? savedData : migrate5KSessions(savedData);
+                    result.programVersion = PROGRAM_VERSION;
+                    result.rmHash = rmHash;
+                    return result;
                 };
 
                 const getInitialData = () => {
@@ -1648,11 +1662,40 @@
                     return getDefaultData();
                 };
 
+                class ErrorBoundary extends React.Component {
+                    constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+                    static getDerivedStateFromError(e) { return { hasError: true, error: e }; }
+                    render() {
+                        if (this.state.hasError) {
+                            return (
+                                <div style={{minHeight:'100vh',background:'linear-gradient(150deg,#004668,#005F87)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Arial,sans-serif'}}>
+                                    <div style={{background:'rgba(255,255,255,0.97)',borderRadius:'16px',padding:'32px',maxWidth:'480px',width:'90%',textAlign:'center',boxShadow:'0 8px 32px rgba(0,0,0,0.3)'}}>
+                                        <h2 style={{color:'#DC2626',fontSize:'22px',fontWeight:700,marginBottom:'12px'}}>App Error</h2>
+                                        <p style={{color:'#565A5C',fontSize:'13px',marginBottom:'8px',wordBreak:'break-word'}}>{String(this.state.error)}</p>
+                                        <p style={{color:'#9ca3af',fontSize:'12px',marginBottom:'24px'}}>If this keeps happening, reset to clear corrupted data.</p>
+                                        <div style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
+                                            <button onClick={() => this.setState({hasError:false,error:null})}
+                                                style={{background:'transparent',color:'#005F87',padding:'10px 20px',borderRadius:'8px',fontWeight:700,cursor:'pointer',border:'2px solid #005F87',fontSize:'14px'}}>
+                                                Try Again
+                                            </button>
+                                            <button onClick={() => { localStorage.removeItem('chaseTraining56Week2026'); window.location.reload(); }}
+                                                style={{background:'#DC2626',color:'white',padding:'10px 20px',borderRadius:'8px',fontWeight:700,cursor:'pointer',border:'none',fontSize:'14px'}}>
+                                                Reset &amp; Reload
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+                        return this.props.children;
+                    }
+                }
+
                 function SyncIndicator({ status, lastSync }) {
                     const info = status === 'synced' ? { text: 'Synced', cls: 'sync-online' } :
                                  status === 'syncing' ? { text: 'Syncing...', cls: 'sync-syncing syncing-pulse' } :
                                  status === 'offline' ? { text: 'Offline', cls: 'sync-offline' } :
-                                 { text: 'Error', cls: 'sync-offline' };
+                                 { text: 'Error', cls: 'sync-error' };
                     return (
                         <div className={`sync-indicator ${info.cls}`}>
                             <span>{info.text}</span>
@@ -1710,8 +1753,16 @@
                     // Recent-entries panel collapse states (for compactness)
                     const [showAllWeightEntries, setShowAllWeightEntries] = useState(false);
                     const [showAllSleepEntries, setShowAllSleepEntries] = useState(false);
+                    const [notification, setNotification] = useState(null);
+                    const notificationTimerRef = useRef(null);
+                    const showNotification = React.useCallback((msg, type = 'success', duration = 4000) => {
+                        if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+                        setNotification({ msg, type });
+                        notificationTimerRef.current = setTimeout(() => setNotification(null), duration);
+                    }, []);
                     const syncTimeoutRef = useRef(null);
                     const isInitialLoad = useRef(true);
+                    const isSyncingFromRemote = useRef(false);
                     const lastRemoteUpdate = useRef(0);
                     const isSaving = useRef(false);
                     const localDataVersion = useRef(0);
@@ -1747,7 +1798,8 @@
                                 const localData = localRaw ? JSON.parse(localRaw) : null;
                                 const localTs = localData?.lastUpdated || 0;
                                 if (remoteData.lastUpdated > localTs) {
-                                    // Remote is newer — apply it
+                                    // Remote is newer — apply it; flag so auto-save doesn't echo back
+                                    isSyncingFromRemote.current = true;
                                     const migratedData = migrateData(remoteData);
                                     lastRemoteUpdate.current = remoteData.lastUpdated;
                                     setData(migratedData);
@@ -1757,11 +1809,11 @@
                                 }
                             }
                             setSyncStatus('synced');
-                            // Allow auto-save only AFTER initial load is fully done
-                            setTimeout(() => { isInitialLoad.current = false; }, 500);
+                            // Allow auto-save only AFTER initial Firebase load completes
+                            isInitialLoad.current = false;
                         }).catch(() => {
                             setSyncStatus('offline');
-                            setTimeout(() => { isInitialLoad.current = false; }, 500);
+                            isInitialLoad.current = false;
                         });
 
                         return () => {
@@ -1772,7 +1824,9 @@
                     }, []);
 
                     useEffect(() => {
-                        if (isInitialLoad.current) return; // don't save during initial load
+                        if (isInitialLoad.current) return;
+                        // Skip write-back when this change originated from Firebase (prevents echo loop)
+                        if (isSyncingFromRemote.current) { isSyncingFromRemote.current = false; return; }
                         const newData = {...data, currentWeekIndex: currentWeek};
                         localStorage.setItem('chaseTraining56Week2026', JSON.stringify(newData));
                         saveToFirebase(newData); // debounced 1.5s push to Firebase
@@ -1885,7 +1939,7 @@
                         });
 
                         return () => { if (radarInstance.current) { radarInstance.current.destroy(); radarInstance.current = null; } };
-                    }, [view, data]);
+                    }, [view, data.goals]);
 
                     // ═══ GOAL TRAJECTORY TIMELINES ════════════════════════════════════
                     // One mini line chart per main lift (Squat, Bench, TBDL, PC). Shows e1RM
@@ -2061,7 +2115,7 @@
                                 }
                             });
                         };
-                    }, [view, data]);
+                    }, [view, data.oneRepMaxHistory, data.goals]);
 
                     // ═══ VOLUME TAB · PERIODIZATION WAVE ════════════════════════════════
                     // Weekly tonnage line/area chart with mesocycle phase bands behind,
@@ -2226,7 +2280,7 @@
                         });
 
                         return () => { if (waveInstance.current) { waveInstance.current.destroy(); waveInstance.current = null; } };
-                    }, [view, data]);
+                    }, [view, data.weeks]);
 
                     // ═══ VOLUME TAB · ACWR MONITOR ══════════════════════════════════════
                     // Two stacked charts: top shows acute (1-week) vs chronic (4-week avg)
@@ -2234,7 +2288,7 @@
                     // green, caution (1.3-1.5) yellow, danger (>1.5 or <0.8) red.
                     useEffect(() => {
                         if (view !== 'volume' || !window.Chart) return;
-                        const acwr = getACWRData();
+                        const acwr = acwrData;
                         const todayWeek = getTodayWeek();
 
                         // Top chart: acute + chronic volume lines
@@ -2405,7 +2459,7 @@
                             if (acwrVolInstance.current) { acwrVolInstance.current.destroy(); acwrVolInstance.current = null; }
                             if (acwrRatioInstance.current) { acwrRatioInstance.current.destroy(); acwrRatioInstance.current = null; }
                         };
-                    }, [view, data]);
+                    }, [view, data.weeks]);
 
                     // ═══ RECOVERY TAB · SLEEP CHART ═════════════════════════════════════
                     // Bar chart of last 30 nights of sleep with 7-day rolling average overlay.
@@ -2491,7 +2545,7 @@
                         });
 
                         return () => { if (sleepChartInstance.current) { sleepChartInstance.current.destroy(); sleepChartInstance.current = null; } };
-                    }, [view, data]);
+                    }, [view, data.sleepLog]);
 
                     // ═══ RECOVERY TAB · WEIGHT TREND CHART ═════════════════════════════
                     // Plots all logged bodyweights as faint dots/line + a 7-day rolling average
@@ -2623,7 +2677,7 @@
                         });
 
                         return () => { if (weightChartInstance.current) { weightChartInstance.current.destroy(); weightChartInstance.current = null; } };
-                    }, [view, data]);
+                    }, [view, data.weightLog]);
 
                     const getProgress = (goal) => goal.higherIsBetter ? Math.min((goal.current / goal.target) * 100, 100) : Math.min((goal.target / goal.current) * 100, 100);
                     const getProgressColor = (p) => p >= 90 ? 'bg-green-500' : p >= 70 ? 'bg-yellow-500' : 'bg-red-500';
@@ -2667,7 +2721,7 @@
                             });
                         });
                         if (removedCount === 0) {
-                            alert('No incomplete exercises found in past weeks. Nothing to clean up.');
+                            showNotification('No incomplete exercises found in past weeks. Nothing to clean up.', 'info');
                             return;
                         }
                         const weekList = Array.from(weeksAffected).sort((a,b)=>a-b);
@@ -2688,7 +2742,7 @@
                             };
                         });
                         setData(newData);
-                        alert('Cleaned up ' + removedCount + ' exercise' + (removedCount === 1 ? '' : 's') + '. Volume calcs now reflect actual completed work.');
+                        showNotification('Cleaned up ' + removedCount + ' exercise' + (removedCount === 1 ? '' : 's') + '. Volume calcs now reflect actual completed work.', 'success');
                     };
 
                     const calcSessionVolume = (session) => {
@@ -2794,9 +2848,16 @@
                         });
                     };
 
-                    const currentSessionVolume = data.weeks[currentWeek] && data.weeks[currentWeek].sessions && data.weeks[currentWeek].sessions[currentSession] ? calcSessionVolume(data.weeks[currentWeek].sessions[currentSession]) : 0;
-                    const currentWeekVolume = calcWeekVolume(currentWeek);
-                    const totalVolume = calcTotalVolume();
+                    // Memoized expensive derived data — only recomputes when weeks array changes
+                    const movementMatrix = useMemo(() => getMovementMatrix(), [data.weeks]);
+                    const acwrData = useMemo(() => getACWRData(), [data.weeks]);
+
+                    const currentSessionVolume = useMemo(() => {
+                        if (!data.weeks[currentWeek]?.sessions?.[currentSession]) return 0;
+                        return calcSessionVolume(data.weeks[currentWeek].sessions[currentSession]);
+                    }, [data.weeks, currentWeek, currentSession]);
+                    const currentWeekVolume = useMemo(() => calcWeekVolume(currentWeek), [data.weeks, currentWeek]);
+                    const totalVolume = useMemo(() => calcTotalVolume(), [data.weeks]);
 
                     const calcSessionMileage = (session) => {
                         if (!session || !Array.isArray(session.exercises)) return 0;
@@ -2810,9 +2871,9 @@
                         return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcSessionMileage(sess), 0);
                     };
                     const calcTotalMileage = () => data.weeks.reduce((total, _, idx) => total + calcWeekMileage(idx), 0);
-                    const currentWeekMileage = calcWeekMileage(currentWeek);
-                    const totalMileage = calcTotalMileage();
-                    const weeksWithMileage = data.weeks.filter((_, idx) => calcWeekMileage(idx) > 0).length;
+                    const currentWeekMileage = useMemo(() => calcWeekMileage(currentWeek), [data.weeks, currentWeek]);
+                    const totalMileage = useMemo(() => calcTotalMileage(), [data.weeks]);
+                    const weeksWithMileage = useMemo(() => data.weeks.filter((_, idx) => calcWeekMileage(idx) > 0).length, [data.weeks]);
                     const avgWeeklyMileage = weeksWithMileage > 0 ? (totalMileage / weeksWithMileage).toFixed(1) : 0;
 
                     // ── CONTACT TRACKING (Plyo v2) ──────────────────────────────────────────
@@ -2824,8 +2885,11 @@
                         if (!data.weeks[weekIdx] || !Array.isArray(data.weeks[weekIdx].sessions)) return 0;
                         return data.weeks[weekIdx].sessions.reduce((total, sess) => total + calcSessionContacts(sess), 0);
                     };
-                    const currentSessionContacts = data.weeks[currentWeek] && data.weeks[currentWeek].sessions && data.weeks[currentWeek].sessions[currentSession] ? calcSessionContacts(data.weeks[currentWeek].sessions[currentSession]) : 0;
-                    const currentWeekContacts = calcWeekContacts(currentWeek);
+                    const currentSessionContacts = useMemo(() => {
+                        if (!data.weeks[currentWeek]?.sessions?.[currentSession]) return 0;
+                        return calcSessionContacts(data.weeks[currentWeek].sessions[currentSession]);
+                    }, [data.weeks, currentWeek, currentSession]);
+                    const currentWeekContacts = useMemo(() => calcWeekContacts(currentWeek), [data.weeks, currentWeek]);
                     // Phase contacts: sum all weeks in same mesocycle
                     const currentMesoIndex = Math.floor(currentWeek / 4);
                     const phaseStartWeek = currentMesoIndex * 4;
@@ -2906,12 +2970,12 @@
                                             <div className="glass rounded-xl shadow-lg p-6 border-2 border-blue-500 bg-gradient-to-r from-blue-50 to-teal-50" style={{background:'linear-gradient(135deg,#e6f2f8,#e0f5f5)'}}>
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <h3 className="text-2xl font-bold font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏁 5K Race — April 30</h3>
+                                                        <h3 className="text-2xl font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏁 5K Race — April 30</h3>
                                                         <p className="font-semibold mt-1" style={{color:'#00A3A3'}}>Target: Sub-21:00 · Current PR: 23:00</p>
                                                         <p className="text-sm text-gray-600 mt-2">Thu Apr 30 · Splits: Mile 1 @ 7:00 · Mile 2 @ 6:55 · Mile 3 @ 6:40</p>
                                                     </div>
                                                     <div className="text-center">
-                                                        <div className="text-5xl font-bold font-semibold" style={{color:'#005F87'}}>{daysToRace}</div>
+                                                        <div className="text-5xl font-bold" style={{color:'#005F87'}}>{daysToRace}</div>
                                                         <div className="text-sm text-orange-500 font-semibold">days to go</div>
                                                     </div>
                                                 </div>
@@ -3006,7 +3070,7 @@
                                                 <p className="text-gray-600 text-sm mt-2">{week.focus}</p>
                                                 {fiveKOverlay[week.weekNum] && (
                                                     <div className="mt-3 p-3 bg-orange-100 rounded-lg border border-orange-300">
-                                                        <p className="text-sm font-bold font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏃 5K Prep Active — Running sessions modified for Apr 30 race</p>
+                                                        <p className="text-sm font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏃 5K Prep Active — Running sessions modified for Apr 30 race</p>
                                                     </div>
                                                 )}
                                                 {E1RM_CHECK_WEEKS[week.weekNum] && (
@@ -3382,7 +3446,7 @@
                                                 <button onClick={() => {
                                                     const todayWeek = getTodayWeek();
                                                     if (todayWeek <= 1) {
-                                                        alert('No past weeks to clean — program hasn\'t started yet or is in W1.');
+                                                        showNotification('No past weeks to clean — program hasn\'t started yet or is in W1.', 'info');
                                                         return;
                                                     }
                                                     let toRemove = 0;
@@ -3398,7 +3462,7 @@
                                                         if (weekHasRemoval) weeksAffected++;
                                                     }
                                                     if (toRemove === 0) {
-                                                        alert('Nothing to clean — all past weeks are already tidy.');
+                                                        showNotification('Nothing to clean — all past weeks are already tidy.', 'info');
                                                         return;
                                                     }
                                                     if (!confirm(
@@ -3421,7 +3485,7 @@
                                                         };
                                                     });
                                                     setData(newData);
-                                                    alert('Removed ' + toRemove + ' unchecked exercises from ' + weeksAffected + ' past ' + (weeksAffected === 1 ? 'week' : 'weeks') + '.\n\nWave / ACWR / matrix views should now accurately reflect what you actually trained.');
+                                                    showNotification('Removed ' + toRemove + ' unchecked exercises from ' + weeksAffected + ' past ' + (weeksAffected === 1 ? 'week' : 'weeks') + '.\n\nWave / ACWR / matrix views should now accurately reflect what you actually trained.', 'success', 6000);
                                                 }} className="px-5 py-2 rounded-lg font-bold text-white shrink-0" style={{background:'#D97706'}}>
                                                     Clean Up
                                                 </button>
@@ -3512,7 +3576,7 @@
                                                 <p className="text-xs mt-1" style={{color:'#565A5C', letterSpacing:'0.02em'}}>Volume per movement pattern across all 56 weeks · per-row normalized · darker = higher emphasis · scroll →</p>
                                             </div>
                                             {(() => {
-                                                const mm = getMovementMatrix();
+                                                const mm = movementMatrix;
                                                 const todayWeek = getTodayWeek();
                                                 const rowMaxes = {};
                                                 mm.categories.forEach(c => { rowMaxes[c] = Math.max(1, ...mm.matrix[c]); });
@@ -3625,12 +3689,12 @@
                                                 {data.weeks[currentWeek].sessions.map((sess, sIdx) => (
                                                     <div key={sIdx} className="flex justify-between items-center py-3 border-b border-yellow-200 last:border-0">
                                                         <span className="text-gray-700 font-medium">{sess.day} - {sess.name}</span>
-                                                        <span className="text-xl font-bold font-semibold" style={{color:'#005F87'}}>{(calcSessionVolume(sess)/1000).toFixed(1)}k lbs</span>
+                                                        <span className="text-xl font-bold" style={{color:'#005F87'}}>{(calcSessionVolume(sess)/1000).toFixed(1)}k lbs</span>
                                                     </div>
                                                 ))}
                                                 <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-yellow-400">
                                                     <span className="text-lg font-bold text-yellow-800">WEEK TOTAL</span>
-                                                    <span className="text-2xl font-bold font-semibold" style={{color:'#005F87'}}>{(currentWeekVolume/1000).toFixed(1)}k lbs</span>
+                                                    <span className="text-2xl font-bold" style={{color:'#005F87'}}>{(currentWeekVolume/1000).toFixed(1)}k lbs</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -3653,7 +3717,7 @@
                                                             <div className="flex-1 mx-3 h-5 bg-gray-200 rounded-full overflow-hidden">
                                                                 <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all" style={{width: barWidth + '%'}}></div>
                                                             </div>
-                                                            <span className="w-24 text-right font-bold font-semibold" style={{color:'#005F87'}}>{(wVolume/1000).toFixed(1)}k lbs</span>
+                                                            <span className="w-24 text-right font-bold" style={{color:'#005F87'}}>{(wVolume/1000).toFixed(1)}k lbs</span>
                                                         </div>
                                                     );
                                                 })}
@@ -3733,7 +3797,7 @@
                                             </div>
                                             {fiveKOverlay[week.weekNum] && (
                                                 <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
-                                                    <p className="text-sm font-bold font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏃 5K Prep Week — Running sessions modified for Apr 30 race · Strength stays unchanged</p>
+                                                    <p className="text-sm font-bold" style={{color:'#005F87', fontFamily:'Arial,sans-serif'}}>🏃 5K Prep Week — Running sessions modified for Apr 30 race · Strength stays unchanged</p>
                                                 </div>
                                             )}
                                             {E1RM_CHECK_WEEKS[week.weekNum] && (
@@ -3762,7 +3826,7 @@
                                                 <div className="bg-blue-50 rounded-lg p-4"><p className="text-xs text-gray-600">Completion</p><p className="text-2xl font-bold text-blue-700" style={{color:'#005F87'}}>{completion}%</p></div>
                                                 <div className="bg-blue-50 rounded-lg p-4"><p className="text-xs text-gray-600">Session Vol</p><p className="text-2xl font-bold text-blue-600">{(currentSessionVolume/1000).toFixed(1)}k</p></div>
                                                 <div className="bg-green-50 rounded-lg p-4"><p className="text-xs text-gray-600">Week Vol</p><p className="text-2xl font-bold text-green-600">{(currentWeekVolume/1000).toFixed(1)}k</p></div>
-                                                <div className="bg-orange-50 rounded-lg p-4"><p className="text-xs text-gray-600">Intensity</p><p className="text-2xl font-bold font-semibold" style={{color:'#005F87'}}>{week.intensity}/10</p></div>
+                                                <div className="bg-orange-50 rounded-lg p-4"><p className="text-xs text-gray-600">Intensity</p><p className="text-2xl font-bold" style={{color:'#005F87'}}>{week.intensity}/10</p></div>
                                             </div>
                                             {currentSessionContacts > 0 && (
                                                 <div className="grid grid-cols-3 gap-4">
@@ -3882,7 +3946,7 @@
                                                     <button onClick={() => {
                                                         const w = parseFloat(weightValue);
                                                         if (!weightDate || isNaN(w) || w <= 0) {
-                                                            alert('Please enter a valid date and weight.');
+                                                            showNotification('Please enter a valid date and weight.', 'error');
                                                             return;
                                                         }
                                                         const newData = {...data};
@@ -4087,7 +4151,7 @@
                                                     <button onClick={() => {
                                                         const hrs = parseFloat(sleepHours);
                                                         if (!sleepDate || isNaN(hrs) || hrs <= 0) {
-                                                            alert('Please enter a valid date and hours.');
+                                                            showNotification('Please enter a valid date and hours.', 'error');
                                                             return;
                                                         }
                                                         const newData = {...data};
@@ -4375,7 +4439,7 @@
                                                             const regenerated = migrateData(newData);
 
                                                             setData(regenerated);
-                                                            alert(calcLift + ' 1RM updated: ' + prev + ' → ' + calcResult.avg + ' lbs' + goalSyncMsg + '\n\n✓ All 56 weeks of program weights recalculated from new e1RM. Open any week to see updated prescriptions across squat, bench, trap bar, power clean, RFESS, RDL, OHP, DB Row, and Front Squat.');
+                                                            showNotification(calcLift + ' 1RM updated: ' + prev + ' → ' + calcResult.avg + ' lbs' + goalSyncMsg + '\n\n✓ All 56 weeks of program weights recalculated from new e1RM. Open any week to see updated prescriptions across squat, bench, trap bar, power clean, RFESS, RDL, OHP, DB Row, and Front Squat.', 'success', 8000);
                                                         }} className="flex-1 py-3 rounded-lg text-white font-bold" style={{background:'#00A3A3'}}>
                                                             Update {calcLift} 1RM → {calcResult.avg} lbs
                                                         </button>
@@ -4750,12 +4814,25 @@
                                     </div>
                                 )}
                             </div>
+                            {notification && (
+                                <div onClick={() => setNotification(null)}
+                                    style={{position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',
+                                        background: notification.type === 'error' ? 'rgba(220,38,38,0.95)' : 'rgba(0,70,104,0.95)',
+                                        color:'white',padding:'14px 24px',borderRadius:'12px',
+                                        boxShadow:'0 4px 24px rgba(0,0,0,0.35)',zIndex:9999,
+                                        fontFamily:'Arial,sans-serif',fontSize:'13px',fontWeight:600,
+                                        maxWidth:'560px',width:'90%',textAlign:'center',
+                                        whiteSpace:'pre-line',cursor:'pointer',lineHeight:'1.6'}}>
+                                    {notification.msg}
+                                    <span style={{marginLeft:'14px',opacity:0.7,fontSize:'15px',verticalAlign:'middle'}}>✕</span>
+                                </div>
+                            )}
                         </div>
                     );
                 }
 
                 const root = ReactDOM.createRoot(document.getElementById('root'));
-                root.render(<App />);
+                root.render(<ErrorBoundary><App /></ErrorBoundary>);
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.body.innerHTML += '<div style="color: white; background: rgba(255,0,0,0.8); margin: 20px; padding: 20px; border-radius: 10px;"><h2>Error</h2><p>' + error.message + '</p></div>';
