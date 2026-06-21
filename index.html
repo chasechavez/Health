@@ -203,10 +203,29 @@
     </div>
     <div id="root"></div>
 
+    <script>
+        // Plain-JS failsafe: if Babel compilation or any CDN script fails on mobile,
+        // show a retry prompt after 20 seconds instead of an endless spinner.
+        var _loadTimeout = setTimeout(function() {
+            var el = document.getElementById('loading');
+            if (el && el.style.display !== 'none') {
+                el.innerHTML =
+                    '<div style="text-align:center;padding:40px 24px">' +
+                    '<div style="color:white;font-size:26px;font-weight:700;margin-bottom:10px">Chase Chavez</div>' +
+                    '<div style="color:#00A3A3;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:36px">2026 Training System</div>' +
+                    '<p style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.6;margin-bottom:28px">Taking longer than expected.<br>Check your connection and try again.</p>' +
+                    '<button onclick="location.reload()" style="background:#00A3A3;color:white;border:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:0.03em">Retry</button>' +
+                    '</div>';
+            }
+        }, 20000);
+        window.__clearAppTimeout = function() { clearTimeout(_loadTimeout); };
+    </script>
+
     <script type="text/babel">
         (function() {
             try {
                 document.getElementById('loading').style.display = 'none';
+                if (window.__clearAppTimeout) window.__clearAppTimeout();
                 const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
                 // Firebase Configuration
