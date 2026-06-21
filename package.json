@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "@babel/core": "^8.0.1",
+    "@babel/plugin-transform-react-jsx": "^8.0.1"
+  }
+}
