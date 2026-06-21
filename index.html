@@ -204,7 +204,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        window.addEventListener('load', function() {
+        (function() {
             try {
                 document.getElementById('loading').style.display = 'none';
                 const { useState, useEffect, useRef, useCallback, useMemo } = React;
@@ -4838,7 +4838,7 @@
                 document.body.innerHTML += '<div style="color: white; background: rgba(255,0,0,0.8); margin: 20px; padding: 20px; border-radius: 10px;"><h2>Error</h2><p>' + error.message + '</p></div>';
                 console.error(error);
             }
-        });
+        })();
     </script>
     <script>
         if ('serviceWorker' in navigator) {
