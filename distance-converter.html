@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distance Converter · Chase Chavez PT, DPT, SCS</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:      #005F87;
+    --teal:      #00A3A3;
+    --slate:     #565A5C;
+    --offwhite:  #F5F4F2;
+    --nearblack: #141414;
+    --border:    #d8d4ce;
+    --card:      #ffffff;
+    --active-bg: #eef6fa;
+    --muted:     #8e9194;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--offwhite);
+    color: var(--nearblack);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 64px;
+  }
+
+  /* ── Header ── */
+  .header {
+    width: 100%;
+    max-width: 520px;
+    margin-bottom: 32px;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .node-mark { flex-shrink: 0; }
+
+  .wordmark {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .wordmark-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--blue);
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+  }
+  .wordmark-creds {
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: var(--teal);
+    line-height: 1;
+  }
+  .wordmark-rule {
+    width: 32px;
+    height: 1.5px;
+    background: var(--teal);
+    margin: 4px 0 3px;
+  }
+  .wordmark-title {
+    font-weight: 400;
+    font-size: 0.6rem;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .tool-heading {
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+  }
+  .tool-heading h1 {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .tool-heading p {
+    font-size: 0.78rem;
+    color: var(--slate);
+  }
+
+  /* ── Wrapper ── */
+  .wrapper { width: 100%; max-width: 520px; }
+
+  /* ── Filter tabs ── */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    flex: 1;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--slate);
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 9px 4px;
+    cursor: pointer;
+    transition: border-color 0.14s, color 0.14s, background 0.14s;
+    text-align: center;
+  }
+  .tab:hover { border-color: var(--blue); color: var(--blue); }
+  .tab.on {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: white;
+  }
+
+  /* ── Group label ── */
+  .group-label {
+    font-weight: 700;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 18px 0 8px 2px;
+  }
+
+  /* ── Unit card ── */
+  .unit-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 13px 16px;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.14s, background 0.14s;
+    position: relative;
+  }
+  .unit-card:hover { border-color: var(--blue); }
+  .unit-card.active {
+    border-color: var(--teal);
+    background: var(--active-bg);
+  }
+  .unit-card.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    height: 52%; width: 3px;
+    background: var(--teal);
+    border-radius: 0 2px 2px 0;
+  }
+  .unit-card.hidden { display: none; }
+
+  .unit-label {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 90px;
+  }
+  .unit-abbr {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--blue);
+    line-height: 1;
+  }
+  .unit-card.active .unit-abbr { color: var(--teal); }
+
+  .unit-name {
+    font-size: 0.63rem;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .unit-tag {
+    display: inline-block;
+    font-weight: 700;
+    font-size: 0.52rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-top: 2px;
+  }
+  .tag-metric   { background: #d6eef5; color: var(--blue); }
+  .tag-imperial { background: #d6f2f2; color: #007a7a; }
+
+  .input-area { flex: 1; }
+  .input-area input {
+    width: 100%;
+    background: transparent;
+    border: none; outline: none;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--nearblack);
+    text-align: right;
+    caret-color: var(--teal);
+    padding: 0;
+    /* Hide browser spin buttons */
+    -moz-appearance: textfield;
+  }
+  .input-area input::-webkit-outer-spin-button,
+  .input-area input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .input-area input::placeholder {
+    color: var(--border);
+    font-weight: 400;
+  }
+  .input-area input:read-only {
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 1.05rem;
+  }
+  .unit-card.active .input-area input {
+    color: var(--nearblack);
+    font-weight: 700;
+  }
+
+  /* ── Bottom ── */
+  .bottom {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .reset-btn {
+    flex: 1;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--slate);
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 11px;
+    cursor: pointer;
+    transition: border-color 0.14s, color 0.14s;
+  }
+  .reset-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* ── Footer ── */
+  .footer {
+    width: 100%;
+    max-width: 520px;
+    margin-top: 32px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .footer-left { font-size: 0.65rem; color: var(--muted); }
+  .footer-tagline { font-style: italic; font-size: 0.72rem; color: var(--teal); }
+
+  @media (max-width: 380px) {
+    .unit-label { min-width: 70px; }
+    .input-area input { font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+  <div class="brand-row">
+    <svg class="node-mark" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="22" y1="22" x2="22" y2="6"  stroke="#005F87" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="22" y1="22" x2="8"  y2="34" stroke="#005F87" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="22" y1="22" x2="36" y2="34" stroke="#005F87" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="22" cy="22" r="3.2" fill="#005F87"/>
+      <circle cx="22" cy="6"  r="4"   fill="#00A3A3"/>
+      <circle cx="8"  cy="34" r="4"   fill="#00A3A3"/>
+      <circle cx="36" cy="34" r="4"   fill="#00A3A3"/>
+    </svg>
+    <div class="wordmark">
+      <span class="wordmark-name">Chase Chavez</span>
+      <span class="wordmark-creds">PT, DPT, SCS</span>
+      <div class="wordmark-rule"></div>
+      <span class="wordmark-title">Board-Certified Sports Physical Therapist</span>
+    </div>
+  </div>
+  <div class="tool-heading">
+    <h1>Distance Converter</h1>
+    <p>Select any unit, enter a value — all 7 units update instantly.</p>
+  </div>
+</div>
+
+<!-- ── App ── -->
+<div class="wrapper">
+  <div class="tabs" role="tablist" aria-label="Unit filter">
+    <button class="tab on" data-filter="all"      role="tab" aria-selected="true">All Units</button>
+    <button class="tab"    data-filter="metric"   role="tab" aria-selected="false">Metric</button>
+    <button class="tab"    data-filter="imperial" role="tab" aria-selected="false">Imperial</button>
+  </div>
+
+  <div id="cards"></div>
+
+  <div class="bottom">
+    <button class="reset-btn" id="resetBtn">&#x21BA; &nbsp; Reset All</button>
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<div class="footer">
+  <span class="footer-left">7 units · metric &amp; imperial</span>
+  <span class="footer-tagline">Build what stays.</span>
+</div>
+
+<script>
+'use strict';
+
+// Each unit's factor is meters-per-unit.
+// Convert to meters:   value * factor
+// Convert from meters: meters / factor
+const UNITS = [
+  { key:'cm', abbr:'cm', name:'Centimeters', system:'metric',   factor: 0.01      },
+  { key:'m',  abbr:'m',  name:'Meters',      system:'metric',   factor: 1         },
+  { key:'km', abbr:'km', name:'Kilometers',  system:'metric',   factor: 1000      },
+  { key:'in', abbr:'in', name:'Inches',      system:'imperial', factor: 0.0254    },
+  { key:'ft', abbr:'ft', name:'Feet',        system:'imperial', factor: 0.3048    },
+  { key:'yd', abbr:'yd', name:'Yards',       system:'imperial', factor: 0.9144    },
+  { key:'mi', abbr:'mi', name:'Miles',       system:'imperial', factor: 1609.344  },
+];
+
+// Cached DOM refs: key -> { card, input }
+const els = new Map();
+
+let activeKey = 'm';
+let activeUnit = UNITS.find(u => u.key === 'm');
+let currentFilter = 'all';
+
+// Format a number for display — strips unnecessary trailing zeros,
+// falls back to exponential for very large/small values.
+function fmt(n) {
+  if (!Number.isFinite(n)) return '';
+  if (n === 0) return '0';
+  const abs = Math.abs(n);
+  if (abs >= 1e15 || abs < 1e-9) return n.toExponential(4);
+  // toPrecision(10) then parse back strips trailing zeros
+  return String(+n.toPrecision(10));
+}
+
+// ── Build DOM (called once) ─────────────────────────────────────────────────
+
+function buildCards() {
+  const container = document.getElementById('cards');
+  container.innerHTML = '';
+  els.clear();
+
+  const groups = [
+    { label: 'Metric',        system: 'metric'   },
+    { label: 'Imperial / US', system: 'imperial' },
+  ];
+
+  groups.forEach(({ label, system }) => {
+    const gl = document.createElement('div');
+    gl.className = 'group-label';
+    gl.textContent = label;
+    container.appendChild(gl);
+
+    UNITS.filter(u => u.system === system).forEach(u => {
+      const isActive = u.key === activeKey;
+      const tagClass = system === 'metric' ? 'tag-metric' : 'tag-imperial';
+      const tagLabel = system === 'metric' ? 'Metric' : 'Imperial';
+
+      const card = document.createElement('div');
+      card.className = 'unit-card' + (isActive ? ' active' : '');
+      card.dataset.key = u.key;
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', u.name);
+
+      card.innerHTML =
+        `<div class="unit-label">` +
+          `<span class="unit-abbr">${u.abbr}</span>` +
+          `<span class="unit-name">${u.name}</span>` +
+          `<span class="unit-tag ${tagClass}">${tagLabel}</span>` +
+        `</div>` +
+        `<div class="input-area">` +
+          `<input id="input-${u.key}" type="number" inputmode="decimal"` +
+          ` placeholder="—" autocomplete="off"` +
+          `${isActive ? '' : ' readonly'}/>` +
+        `</div>`;
+
+      container.appendChild(card);
+
+      const input = card.querySelector('input');
+      els.set(u.key, { card, input });
+    });
+  });
+
+  // Single delegated listener for card clicks
+  container.addEventListener('click', e => {
+    const card = e.target.closest('.unit-card');
+    if (card) activateUnit(card.dataset.key);
+  });
+
+  // Keyboard activation (Enter / Space) for accessibility
+  container.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const card = e.target.closest('.unit-card');
+      if (card) { e.preventDefault(); activateUnit(card.dataset.key); }
+    }
+  });
+
+  els.get(activeKey).input.addEventListener('input', onInput);
+  els.get(activeKey).input.focus();
+}
+
+// ── Activate a unit ──────────────────────────────────────────────────────────
+
+function activateUnit(key) {
+  if (key === activeKey) {
+    els.get(key).input.focus();
+    return;
+  }
+
+  // Capture current value in meters before switching
+  const prevVal = parseFloat(els.get(activeKey).input.value);
+  const meters = Number.isFinite(prevVal) ? prevVal * activeUnit.factor : NaN;
+
+  // Deactivate previous
+  const prev = els.get(activeKey);
+  prev.card.classList.remove('active');
+  prev.input.readOnly = true;
+  prev.input.removeEventListener('input', onInput);
+
+  // Activate new
+  activeKey = key;
+  activeUnit = UNITS.find(u => u.key === key);
+  const next = els.get(key);
+  next.card.classList.add('active');
+  next.input.readOnly = false;
+  next.input.addEventListener('input', onInput);
+
+  if (Number.isFinite(meters)) {
+    next.input.value = fmt(meters / activeUnit.factor);
+    fillOthers(meters);
+  }
+
+  next.input.focus();
+  // Place cursor at end of value
+  const len = next.input.value.length;
+  next.input.setSelectionRange(len, len);
+}
+
+// ── Conversions ──────────────────────────────────────────────────────────────
+
+function fillOthers(meters) {
+  UNITS.forEach(u => {
+    if (u.key === activeKey) return;
+    els.get(u.key).input.value = fmt(meters / u.factor);
+  });
+}
+
+function clearOthers() {
+  UNITS.forEach(u => {
+    if (u.key !== activeKey) els.get(u.key).input.value = '';
+  });
+}
+
+function onInput(e) {
+  const raw = e.target.value;
+  if (raw === '' || raw === '-') { clearOthers(); return; }
+  const val = parseFloat(raw);
+  if (!Number.isFinite(val)) { clearOthers(); return; }
+  fillOthers(val * activeUnit.factor);
+}
+
+// ── Reset ────────────────────────────────────────────────────────────────────
+
+function resetAll() {
+  els.forEach(({ input }) => { input.value = ''; });
+  els.get(activeKey).input.focus();
+}
+
+// ── Filter tabs ──────────────────────────────────────────────────────────────
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.tab').forEach(t => {
+    const on = t.dataset.filter === f;
+    t.classList.toggle('on', on);
+    t.setAttribute('aria-selected', on);
+  });
+
+  UNITS.forEach(u => {
+    els.get(u.key).card.classList.toggle(
+      'hidden',
+      f !== 'all' && u.system !== f
+    );
+  });
+
+  // Hide group labels when all their children are hidden
+  document.querySelectorAll('.group-label').forEach(gl => {
+    let sib = gl.nextElementSibling;
+    let visible = false;
+    while (sib && !sib.classList.contains('group-label')) {
+      if (!sib.classList.contains('hidden')) { visible = true; break; }
+      sib = sib.nextElementSibling;
+    }
+    gl.style.display = visible ? '' : 'none';
+  });
+}
+
+// ── Wire up tabs & reset ─────────────────────────────────────────────────────
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => setFilter(btn.dataset.filter));
+});
+
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+buildCards();
+</script>
+</body>
+</html>
