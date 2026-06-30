@@ -362,7 +362,7 @@
       'Trap Bar Deadlift': 405,
       'Power Clean': 165
     };
-    const PROGRAM_VERSION = 'v4';
+    const PROGRAM_VERSION = 'v5';
     const computeRMHash = rms => JSON.stringify(['Squat', 'Bench Press', 'Trap Bar Deadlift', 'Power Clean'].map(k => (rms || ONE_RM)[k]));
 
     // ═══ E1RM CHECK-IN SCHEDULE ═══════════════════════════════════════════════
@@ -1349,9 +1349,10 @@
     }
 
     // ═══ PHASE C SESSION GENERATOR (Weeks 27-56, July 6, 2026+) ═══════════════
-    // New job reality: 3 days/week, 30 min per lift session, Daily Mile separate.
-    // Schedule: Mon (Lower+Plyo) · Wed (Upper+Trap) · Sun (Speed+Clean+Plyo)
-    // Tue/Thu = Daily Mile only · Fri = travel · Sat = gameday
+    // 2 days/week schedule (from July 8, 2026): Fri + Sun lifting · Daily Mile every day.
+    // Fri: Squat + Bench + RDL + Face Pulls (35 min)
+    // Sun: Explosive starts + Power Clean + CMJ Plyos (PAP) + Trap Bar DL + Row (38 min)
+    // Mon-Thu = Daily Mile only · Sat = Gameday + Daily Mile
     function generatePhaseCSessions(weekNum, mesoIndex, isDeload, weekInBlock, currentRMs) {
       // currentRMs: live e1RM dictionary; falls back to ONE_RM constant on initial generation
       currentRMs = currentRMs || ONE_RM;
@@ -1555,212 +1556,127 @@
         };
       }
 
-      // ─── Day 1 (Monday): Lower + Plyo · 30 min ─────────────────
-      const mondayExercises = [{
-        name: "[LIGHT] Warm-up: Pogos + A-skip + bodyweight squats",
-        sets: 1,
-        reps: "3min",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: "Joint/ankle prep · extensive tier · <0.2s GCT teach"
+      // ─── Shared: Daily Mile ─────────────────────────────────────
+      const mkMile = (notes) => ({
+        name: "Daily Mile",
+        sets: 1, reps: "1 mile", weight: "", percent: "", completed: false,
+        notes: notes || "Easy pace ~9min/mi · run whenever fits the day",
+        mileage: 1, isRun: true
+      });
+
+      // ─── Days 1-4 (Mon-Thu): Daily Mile only ───────────────────
+      const monExercises = [mkMile()];
+      const tueExercises = [mkMile()];
+      const wedExercises = [mkMile()];
+      const thuExercises = [mkMile()];
+
+      // ─── Day 5 (Friday): Strength — Squat · Bench · RDL · 35 min
+      const rdlWeight = Math.round(currentRMs['Trap Bar Deadlift'] * 0.50 / 5) * 5;
+      const fridayExercises = [{
+        name: "Warm-up: Pogos + Shoulder Dislocates + BW Squats",
+        sets: 1, reps: "2min", weight: "", percent: "", completed: false,
+        notes: "Ankle/shoulder prep · joint mobility · ready to lift heavy"
       }, {
         name: isTestWeek ? "🏆 SQUAT TEST" : "Squat",
-        sets: mainSets,
-        reps: mainReps,
-        weight: String(squatWeight),
-        percent: Math.round(squatPct * 100) + "%",
-        completed: false,
-        notes: isTestWeek ? "🏆 Goal: 385 lbs · full warm-up · spotter" : e1RMNote(weekNum, 'Squat', "Main lift · ~15min including rest · 2-3min between sets")
-      }, plyoA, ...(plyoB ? [plyoB] : []), {
-        name: "Walking Lunge or SL RDL",
-        sets: 2,
-        reps: "6/side",
-        weight: "BW or light DB",
-        percent: "",
-        completed: false,
-        notes: "Unilateral accessory · ~3min · finish strong"
-      }];
-
-      // ─── Day 2 (Tuesday): Daily Mile only ──────────────────────
-      const tuesdayExercises = [{
-        name: "Daily Mile",
-        sets: 1,
-        reps: "1 mile",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: "Easy pace ~9min · run whenever fits",
-        mileage: 1,
-        isRun: true
-      }];
-
-      // ─── Day 3 (Wednesday): Upper + Trap Bar · 30 min ──────────
-      const wednesdayExercises = [{
-        name: "Warm-up: Band pull-aparts + Shoulder dislocates",
-        sets: 1,
-        reps: "2min",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: "Shoulder prep · bands"
+        sets: mainSets, reps: mainReps, weight: String(squatWeight),
+        percent: Math.round(squatPct * 100) + "%", completed: false,
+        notes: isTestWeek ? "🏆 Goal: 385 lbs · full warm-up · spotter" : e1RMNote(weekNum, 'Squat', "Primary lower · 2-3min rest · drive knees out · ~14min")
       }, {
         name: isTestWeek ? "🏆 BENCH PRESS TEST" : "Bench Press",
-        sets: mainSets,
-        reps: mainReps,
-        weight: String(benchWeight),
-        percent: Math.round(benchPct * 100) + "%",
-        completed: false,
-        notes: isTestWeek ? "🏆 Goal: 295 lbs · spotter required" : e1RMNote(weekNum, 'Bench Press', "Main upper · ~12min · 2-3min rest")
+        sets: mainSets, reps: mainReps, weight: String(benchWeight),
+        percent: Math.round(benchPct * 100) + "%", completed: false,
+        notes: isTestWeek ? "🏆 Goal: 295 lbs · spotter required" : e1RMNote(weekNum, 'Bench Press', "Primary upper · 2min rest · tight arch · leg drive · ~10min")
       }, {
-        name: isTestWeek ? "🏆 TRAP BAR DL TEST" : "Trap Bar Deadlift",
-        sets: 3,
-        reps: mainReps,
-        weight: String(trapWeight),
-        percent: Math.round(trapPct * 100) + "%",
+        name: "RDL (Romanian Deadlift)",
+        sets: 3, reps: "6-8", weight: String(rdlWeight), percent: "~50% TBD",
         completed: false,
-        notes: isTestWeek ? "🏆 Goal: 500 lbs · hip drive · push floor away" : e1RMNote(weekNum, 'Trap Bar Deadlift', "Posterior chain · ~10min · hip drive")
+        notes: "Posterior chain · hips back · slow eccentric (3s) · 90s rest · ~6min"
       }, {
-        name: "DB Row",
-        sets: 3,
-        reps: "8",
-        weight: "challenging",
-        percent: "",
-        completed: false,
-        notes: "Back volume + shoulder health · ~4min"
-      }];
-
-      // ─── Day 4 (Thursday): Daily Mile only ─────────────────────
-      const thursdayExercises = [{
-        name: "Daily Mile",
-        sets: 1,
-        reps: "1 mile",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: "Easy pace ~9min · run whenever fits",
-        mileage: 1,
-        isRun: true
-      }];
-
-      // ─── Day 5 (Friday): Rest / Travel ─────────────────────────
-      const fridayExercises = [{
-        name: "Daily Mile (travel-dependent)",
-        sets: 1,
-        reps: "1 mile",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: "If travel allows · else full rest day · keep legs fresh",
-        mileage: 1,
-        isRun: true
-      }];
-
-      // ─── Day 6 (Saturday): Gameday (no training) ───────────────
-      const saturdayExercises = [{
-        name: "GAMEDAY — Work Day",
-        sets: 1,
-        reps: "—",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: "No training · long day on feet · hydrate + fuel well"
-      }];
-
-      // ─── Day 7 (Sunday): Speed + Clean + Plyo · 30 min ─────────
-      const is40ydTest = isTestWeek;
-      const is40ydPCTest = mesoIndex === 13 && weekInBlock === 2;
-      const sprintSets = isDeload ? 3 : mesoIndex >= 11 ? 4 : 5;
-      const sprintName = is40ydTest ? "🏆 40-YARD DASH TEST" : mesoIndex >= 10 ? "40yd Sprint — PEAK EFFORT" : "40yd Sprint (w/ 1080 or gates)";
-      const sprintNote = is40ydTest ? "🏆 Goal: Sub-5.0 · 10min rest between · TIME ALL reps · 3-point start" : mesoIndex >= 10 ? "⚡ Peak sprint work · TIME every rep · 4min full CNS recovery · gates" : "40yd sprints · 3-4min rest · gates or 1080 · TIME each rep";
-      const sundayExercises = [{
-        name: "[LIGHT] Dynamic Warm-up: A-skips + Wall Drills + Low Pogos",
-        sets: 1,
-        reps: "5min",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: "Wall drive series · A-skip 2x20yd · low pogos 2x10 · extensive joint prep"
-      }, {
-        name: sprintName,
-        sets: sprintSets,
-        reps: "40yd",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: sprintNote,
-        isSprint: true
-      }, {
-        name: is40ydPCTest ? "🏆 POWER CLEAN TEST" : "Power Clean",
-        sets: 3,
-        reps: "2",
-        weight: String(cleanWeight),
-        percent: Math.round(cleanPct * 100) + "%",
-        completed: false,
-        notes: is40ydPCTest ? "🏆 Goal: 225 lbs · technique over load · 3min rest" : "Speed-strength · explosive · 2min rest"
-      }, {
-        name: mesoIndex >= 10 ? "[PING] Speed Hops (unilateral 15yd)" : "[MEDIUM] Broad Jump or SL Lateral Hop",
-        sets: 3,
-        reps: "3",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: mesoIndex >= 10 ? "Max reactivity · short GCT · locomotion-specific · peak tier" : "Horizontal power expression · 2min rest · submaximal elastic",
-        isPlyo: true,
-        plyoTier: mesoIndex >= 10 ? "PING" : "MEDIUM"
+        name: "Face Pulls",
+        sets: 2, reps: "15", weight: "band/cable", percent: "", completed: false,
+        notes: "Shoulder health · external rotation · 60s rest · finish strong"
       }, {
         name: "Daily Mile (separate)",
-        sets: 1,
-        reps: "1 mile",
-        weight: "",
-        percent: "",
-        completed: false,
-        notes: "Run separately from sprint session · easy pace",
-        mileage: 1,
-        isRun: true
+        sets: 1, reps: "1 mile", weight: "", percent: "", completed: false,
+        notes: "After session or earlier in the day · easy pace ~9min",
+        mileage: 1, isRun: true
       }];
+
+      // ─── Day 6 (Saturday): Gameday ─────────────────────────────
+      const saturdayExercises = [{
+        name: "GAMEDAY — Work Day",
+        sets: 1, reps: "—", weight: "", percent: "", completed: false,
+        notes: "No lifting · long day on feet · hydrate + fuel well"
+      }, mkMile("Easy morning mile · keep the streak · low effort")];
+
+      // ─── Day 7 (Sunday): Power + Plyos — Clean · CMJ · Trap Bar · 38 min
+      const sundayExercises = [{
+        name: "Dynamic Warm-up + Explosive Starts",
+        sets: 1, reps: "5min", weight: "", percent: "", completed: false,
+        notes: "A-skips 2×20yd · wall drives · 3×20yd sub-max acceleration bursts · CNS prime for cleans"
+      }, {
+        name: isTestWeek ? "🏆 POWER CLEAN TEST" : "Power Clean",
+        sets: mainSets, reps: "3", weight: String(cleanWeight),
+        percent: Math.round(cleanPct * 100) + "%", completed: false,
+        notes: isTestWeek ? "🏆 Goal: 225 lbs · technique over load · 3min rest" : "Explosive triple extension · catch in quarter-squat · velocity > load · 2-3min rest"
+      }, plyoA, ...(plyoB ? [plyoB] : []), {
+        name: isTestWeek ? "🏆 TRAP BAR DL TEST" : "Trap Bar Deadlift",
+        sets: 3, reps: mainReps, weight: String(trapWeight),
+        percent: Math.round(trapPct * 100) + "%", completed: false,
+        notes: isTestWeek ? "🏆 Goal: 500 lbs · hip drive · push floor away" : e1RMNote(weekNum, 'Trap Bar Deadlift', "Posterior chain · hip drive · push floor away · 2-3min rest · ~9min")
+      }, {
+        name: "DB Row",
+        sets: 3, reps: "8", weight: "challenging", percent: "", completed: false,
+        notes: "Horizontal pull · back volume + shoulder health · 60-90s rest · ~4min"
+      }, {
+        name: "Daily Mile (separate)",
+        sets: 1, reps: "1 mile", weight: "", percent: "", completed: false,
+        notes: "After session or earlier in the day · easy pace · recovery run",
+        mileage: 1, isRun: true
+      }];
+
       return [{
-        name: "Day 1: Lower + Plyo",
+        name: "Daily Mile Only",
         day: "Monday",
-        exercises: mondayExercises,
-        notes: "⏱ 30min · Squat + Plus Plyos tier: " + (isDeload || weekInBlock === 3 ? "LIGHT (deload)" : weekInBlock === 0 ? "MED+LIGHT" : weekInBlock === 1 ? "MED+DEEP" : "MED+PING")
+        exercises: monExercises,
+        notes: "No lift · Daily Mile only · active recovery"
       }, {
         name: "Daily Mile Only",
         day: "Tuesday",
-        exercises: tuesdayExercises,
-        notes: "No lift · Daily Mile only · recovery"
+        exercises: tueExercises,
+        notes: "No lift · Daily Mile only · active recovery"
       }, {
-        name: "Day 2: Upper + Trap Bar",
+        name: "Daily Mile Only",
         day: "Wednesday",
-        exercises: wednesdayExercises,
-        notes: "⏱ 30min compact · Bench + Trap Bar + Row"
+        exercises: wedExercises,
+        notes: "No lift · Daily Mile only · active recovery"
       }, {
         name: "Daily Mile Only",
         day: "Thursday",
-        exercises: thursdayExercises,
-        notes: "No lift · Daily Mile only · recovery"
+        exercises: thuExercises,
+        notes: "No lift · Daily Mile only · active recovery"
       }, {
-        name: "Rest / Travel",
+        name: "Day 1: Strength — Squat + Bench",
         day: "Friday",
         exercises: fridayExercises,
-        notes: "Travel day · Daily Mile if possible"
+        notes: "⏱ 35min · Squat + Bench + RDL + Face Pulls · primary strength session"
       }, {
         name: "GAMEDAY",
         day: "Saturday",
         exercises: saturdayExercises,
-        notes: "Working · no training"
+        notes: "Working · no lifting · Daily Mile"
       }, {
-        name: "Day 3: Speed + Clean + Plyo",
+        name: "Day 2: Power + Plyos — Clean + CMJ + Trap Bar",
         day: "Sunday",
         exercises: sundayExercises,
-        notes: "⏱ 30min · 40yd + Power Clean + Plus Plyos " + (mesoIndex >= 10 ? "PING tier" : "MEDIUM tier")
+        notes: "⏱ 38min · Clean + CMJ plyos (post-Clean PAP) + Trap Bar + Row · " + (isDeload || weekInBlock === 3 ? "LIGHT plyos (deload)" : weekInBlock === 0 ? "MED+LIGHT plyos" : weekInBlock === 1 ? "MED+DEEP plyos" : "MED+PING plyos")
       }];
     }
     function generateSessions(weekNum, mesoIndex, volume, isDeload, weekInBlock, isRecovery, currentRMs) {
       // currentRMs: live e1RM dictionary; falls back to ONE_RM constant on initial generation
       currentRMs = currentRMs || ONE_RM;
       // ═══ PHASE C BRANCH (Weeks 27-56, July 6, 2026+) ════════════
-      // 3 days/week × 30 min — new job reality
+      // 2 days/week × 35-38 min — Fri + Sun only (from July 8, 2026)
       if (weekNum >= 27) {
         return generatePhaseCSessions(weekNum, mesoIndex, isDeload, weekInBlock, currentRMs);
       }
